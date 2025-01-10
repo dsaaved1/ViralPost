@@ -14,6 +14,8 @@ import { PremiumBanner } from '../components/shared/PremiumBanner';
 import { RankDisplay } from '../components/shared/RankDisplay';
 import { api } from '../services/apifyService';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../context/ThemeContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const MAX_HASHTAGS = 20;
 const FREE_HASHTAGS = 10;
@@ -28,107 +30,8 @@ const formatNumber = (num) => {
   return num.toString();
 };
 
-const TableHeader = () => (
-  <View style={styles.headerRow}>
-    <View style={styles.rankHeader}>
-      <Text style={styles.headerText}>Rank</Text>
-    </View>
-    <View style={styles.hashtagHeader}>
-      <Text style={styles.headerText}>Hashtag</Text>
-    </View>
-    <View style={styles.statsHeader}>
-      <Text style={styles.headerText}>Posts</Text>
-    </View>
-    <View style={styles.statsHeader}>
-      <Text style={styles.headerText}>Views</Text>
-    </View>
-  </View>
-);
-
-const HashtagItem = ({ item }) => (
-  <TouchableOpacity 
-    style={styles.hashtagItem} 
-    onPress={() => Linking.openURL(`https://www.tiktok.com/tag/${item.name}`)}
-    activeOpacity={0.6}
-  >
-    <LinearGradient
-      colors={['#fff', '#f8f9fa']}
-      style={[styles.hashtagGradient, { opacity: 0.5 }]}
-    />
-    <View style={styles.rankContainer}>
-      <RankDisplay 
-        rank={item.rank} 
-        rankDiffType={item.rankDiffType} 
-        rankDiff={item.rankDiff}
-      />
-    </View>
-    <View style={styles.hashtagInfo}>
-      <Text style={styles.hashtagName}>#{item.name}</Text>
-    </View>
-    <View style={styles.statsValue}>
-      <Text style={styles.statsText}>{formatNumber(item.posts)}</Text>
-    </View>
-    <View style={styles.statsValue}>
-      <Text style={styles.statsText}>{formatNumber(item.views)}</Text>
-    </View>
-  </TouchableOpacity>
-);
-
-const LockedHashtagItem = ({ item, onPress }) => {
-  const truncateText = (text, length) => {
-    if (text.length <= length) return text;
-    return `${text.slice(0, length)}...`;
-  };
-
-  return (
-    <TouchableOpacity 
-      style={[styles.hashtagItem, styles.lockedItem]} 
-      onPress={onPress}
-      activeOpacity={0.6}
-    >
-      <LinearGradient
-        colors={['#fff', '#f8f9fa']}
-        style={[styles.hashtagGradient, { opacity: 0.3 }]}
-      />
-      <View style={styles.rankContainer}>
-        <RankDisplay 
-          rank={item.rank} 
-          rankDiffType={item.rankDiffType} 
-          rankDiff={item.rankDiff}
-          isBlurred={true}
-        />
-      </View>
-      <View style={styles.hashtagInfo}>
-        <Text style={[styles.hashtagName, styles.redactedText]}>
-          #{truncateText(item.name, 4)}
-        </Text>
-      </View>
-      <View style={styles.statsValue}>
-        <Text style={[styles.statsText, styles.blurredText]}>
-          {formatNumber(item.posts)}
-        </Text>
-      </View>
-      <View style={styles.statsValue}>
-        <Text style={[styles.statsText, styles.blurredText]}>
-          {formatNumber(item.views)}
-        </Text>
-      </View>
-      <View style={styles.lockIconContainer}>
-        <Text style={styles.lockIcon}>🔒</Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-const FooterMessage = () => (
-  <View style={styles.footerContainer}>
-    <Text style={styles.footerText}>
-      Unlock more trending hashtags with our premium subscription!
-    </Text>
-  </View>
-);
-
 export const HashtagsScreen = () => {
+  const { theme } = useTheme();
   const [hashtags, setHashtags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -157,6 +60,133 @@ export const HashtagsScreen = () => {
     setShowUpgradeModal(true);
   };
 
+  const TableHeader = () => (
+    <View style={[styles.headerRow, { 
+      backgroundColor: theme.surface,
+      borderBottomColor: theme.border
+    }]}>
+      <View style={styles.rankHeader}>
+        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Rank</Text>
+      </View>
+      <View style={styles.hashtagHeader}>
+        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Hashtag</Text>
+      </View>
+      <View style={styles.statsHeader}>
+        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Posts</Text>
+      </View>
+      <View style={styles.statsHeader}>
+        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Views</Text>
+      </View>
+    </View>
+  );
+
+  const HashtagItem = ({ item }) => (
+    <TouchableOpacity 
+      style={[
+        styles.hashtagItem, 
+        { 
+          backgroundColor: theme.cardBackground,
+          shadowColor: theme.text,
+        }
+      ]} 
+      onPress={() => Linking.openURL(`https://www.tiktok.com/tag/${item.name}`)}
+      activeOpacity={0.6}
+    >
+      <LinearGradient
+        colors={[theme.cardBackground, theme.surface]}
+        style={[styles.hashtagGradient, { opacity: 0.5 }]}
+      />
+      <View style={styles.rankContainer}>
+        <RankDisplay 
+          rank={item.rank} 
+          rankDiffType={item.rankDiffType} 
+          rankDiff={item.rankDiff}
+          theme={theme}
+        />
+      </View>
+      <View style={styles.hashtagInfo}>
+        <Text style={[styles.hashtagName, { 
+          color: theme.isDark ? '#FFFFFF' : theme.accent
+        }]}>#{item.name}</Text>
+      </View>
+      <View style={styles.statsValue}>
+        <Text style={[styles.statsText, { color: theme.textSecondary }]}>
+          {formatNumber(item.posts)}
+        </Text>
+      </View>
+      <View style={styles.statsValue}>
+        <Text style={[styles.statsText, { color: theme.textSecondary }]}>
+          {formatNumber(item.views)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const LockedHashtagItem = ({ item, onPress }) => {
+    const truncateText = (text, length) => {
+      if (text.length <= length) return text;
+      return `${text.slice(0, length)}...`;
+    };
+
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.hashtagItem, 
+          { 
+            backgroundColor: theme.surface,
+            shadowColor: theme.text,
+          }
+        ]} 
+        onPress={onPress}
+        activeOpacity={0.6}
+      >
+        <LinearGradient
+          colors={[theme.cardBackground, theme.surface]}
+          style={[styles.hashtagGradient, { opacity: theme.isDark ? 0.3 : 0.1 }]}
+        />
+        <View style={styles.rankContainer}>
+          <RankDisplay 
+            rank={item.rank} 
+            rankDiffType={item.rankDiffType} 
+            rankDiff={item.rankDiff}
+            isBlurred={true}
+            theme={theme}
+          />
+        </View>
+        <View style={styles.hashtagInfo}>
+          <Text style={[styles.hashtagName, { color: theme.textSecondary, opacity: 0.5 }]}>
+            #{truncateText(item.name, 4)}
+          </Text>
+        </View>
+        <View style={styles.statsValue}>
+          <Text style={[styles.statsText, { color: theme.textSecondary, opacity: 0.5 }]}>
+            {formatNumber(item.posts)}
+          </Text>
+        </View>
+        <View style={styles.statsValue}>
+          <Text style={[styles.statsText, { color: theme.textSecondary, opacity: 0.5 }]}>
+            {formatNumber(item.views)}
+          </Text>
+        </View>
+        <View style={[styles.lockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
+          <View style={styles.lockIconContainer}>
+            <Ionicons name="lock-closed" size={20} color={theme.textSecondary} />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const FooterMessage = () => (
+    <View style={[styles.footerContainer, {
+      borderTopColor: theme.border
+    }]}>
+      <Text style={[styles.footerText, { color: theme.textSecondary }]}>
+        Unlock more trending hashtags with our premium subscription!
+      </Text>
+    </View>
+  );
+
   const renderHashtag = ({ item, index }) => {
     if (index < FREE_HASHTAGS) {
       return <HashtagItem item={item} />;
@@ -171,14 +201,16 @@ export const HashtagsScreen = () => {
       animationType="fade"
       onRequestClose={() => setShowUpgradeModal(false)}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.upgradeModal}>
-          <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
-          <Text style={styles.upgradeDescription}>
+      <View style={[styles.modalOverlay, { backgroundColor: theme.modalBackground }]}>
+        <View style={[styles.upgradeModal, { backgroundColor: theme.cardBackground }]}>
+          <Text style={[styles.upgradeTitle, { color: theme.accent }]}>
+            Upgrade to Premium
+          </Text>
+          <Text style={[styles.upgradeDescription, { color: theme.textSecondary }]}>
             Get access to all trending hashtags and unlock premium features!
           </Text>
           <TouchableOpacity 
-            style={styles.upgradeButton}
+            style={[styles.upgradeButton, { backgroundColor: theme.accent }]}
             onPress={() => setShowUpgradeModal(false)}
           >
             <Text style={styles.upgradeButtonText}>Subscribe Now</Text>
@@ -187,7 +219,9 @@ export const HashtagsScreen = () => {
             style={styles.cancelButton}
             onPress={() => setShowUpgradeModal(false)}
           >
-            <Text style={styles.cancelButtonText}>Maybe Later</Text>
+            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>
+              Maybe Later
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -216,24 +250,27 @@ export const HashtagsScreen = () => {
       onPremiumPress={handleUpgradePress}
       type="hashtags"
     >
-      <TableHeader />
-      <FlatList
-        data={hashtags.slice(0, MAX_HASHTAGS)}
-        renderItem={renderHashtag}
-        keyExtractor={(item) => item.id}
-        refreshing={loading}
-        onRefresh={loadHashtags}
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text style={styles.emptyText}>No hashtags found</Text>
-            <Text style={styles.footerText}>
-              Unlock more trending hashtags with our premium subscription!
-            </Text>
-          </View>
-        }
-        ListFooterComponent={hashtags.length > 0 ? <FooterMessage /> : null}
-      />
-      {renderUpgradeModal()}
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <FlatList
+          data={hashtags.slice(0, MAX_HASHTAGS)}
+          renderItem={renderHashtag}
+          keyExtractor={(item) => item.id}
+          refreshing={loading}
+          onRefresh={loadHashtags}
+          ListHeaderComponent={<TableHeader />}
+          ListEmptyComponent={
+            <View style={styles.centered}>
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                No hashtags found
+              </Text>
+            </View>
+          }
+          ListFooterComponent={hashtags.length > 0 ? <FooterMessage /> : null}
+          style={{ backgroundColor: theme.background }}
+          contentContainerStyle={styles.listContentContainer}
+        />
+        {renderUpgradeModal()}
+      </View>
     </AppLayout>
   );
 };
@@ -242,14 +279,17 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    marginTop: 16,
   },
   headerText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#666',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -270,29 +310,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    marginHorizontal: 16,
+    marginVertical: 4,
+    borderRadius: 16,
     backgroundColor: '#fff',
     position: 'relative',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   hashtagInfo: {
     flex: 1,
     marginLeft: 16,
   },
   hashtagName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FF2D55',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   statsValue: {
     width: 80,
     alignItems: 'flex-end',
+    paddingLeft: 8,
   },
   statsText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
   },
   centered: {
     flex: 1,
@@ -357,7 +410,6 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
     marginTop: 16,
   },
   footerText: {
@@ -372,37 +424,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   lockedItem: {
-    opacity: 0.8,
+    opacity: 0.9,
+    backgroundColor: '#f8f9fa',
   },
   lockIconContainer: {
-    position: 'absolute',
-    right: 16,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'transparent',
     borderRadius: 12,
-    padding: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-    zIndex: 1,
+    padding: 8,
   },
-  lockIcon: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#666',
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
   },
   rankContainer: {
     width: 50,
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 4,
+    padding: 8,
   },
   fadeIn: {
     opacity: 1,
@@ -410,5 +449,41 @@ const styles = StyleSheet.create({
   },
   hashtagGradient: {
     ...StyleSheet.absoluteFillObject,
+  },
+  listContainer: {
+    paddingBottom: 20,
+  },
+  filterContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 8,
+  },
+  titleSection: {
+    marginBottom: 16,
+  },
+  screenTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FF2D55',
+    marginBottom: 4,
+  },
+  screenSubtitle: {
+    fontSize: 16,
+    color: '#FF2D55',
+    opacity: 0.8,
+    fontWeight: '500',
+  },
+  filterSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  countryDropdown: {
+    flex: 1,
+    marginRight: 12,
+  },
+  listContentContainer: {
+    flexGrow: 1,
+    paddingBottom: 100,
   },
 }); 

@@ -10,11 +10,14 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { HashtagsScreen } from './src/screens/HashtagsScreen';
 import { SongsScreen } from './src/screens/SongsScreen';
 import { VideosScreen } from './src/screens/VideosScreen';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const TabNavigator = () => {
+  const { theme } = useTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -31,32 +34,25 @@ const TabNavigator = () => {
 
           return <Ionicons name={iconName} size={22} color={color} />;
         },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
           height: Platform.OS === 'ios' ? 85 : 65,
           paddingTop: 0,
           paddingBottom: Platform.OS === 'ios' ? 28 : 12,
-          backgroundColor: '#fff',
+          backgroundColor: theme.background,
           borderTopWidth: 1,
-          borderTopColor: '#eee',
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: -2,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 2,
+          borderTopColor: theme.border,
         },
-        tabBarLabelStyle: {
-          paddingBottom: 3,
-          fontSize: 11,
-          fontWeight: '500',
+        headerStyle: {
+          backgroundColor: theme.background,
+          borderBottomColor: theme.border,
+          borderBottomWidth: 1,
         },
-        tabBarIconStyle: {
-          marginTop: 0,
-        }
+        headerTintColor: theme.text,
+        headerTitleStyle: {
+          color: theme.text,
+        },
       })}
     >
       <Tab.Screen 
@@ -78,10 +74,25 @@ const TabNavigator = () => {
   );
 };
 
-const App = () => {
+// Create a new component to wrap the navigation with theme
+const AppNavigator = () => {
+  const { theme } = useTheme();
+
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: theme.background,
+            borderBottomColor: theme.border,
+            borderBottomWidth: 1,
+          },
+          headerTintColor: theme.text,
+          headerTitleStyle: {
+            color: theme.text,
+          },
+        }}
+      >
         <Stack.Screen 
           name="MainTabs" 
           component={TabNavigator}
@@ -113,6 +124,14 @@ const App = () => {
         />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+};
+
+const App = () => {
+  return (
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
   );
 };
 

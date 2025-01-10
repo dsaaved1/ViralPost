@@ -17,6 +17,7 @@ import { CountryDropdown } from '../components/shared/CountryDropdown';
 import { TimeRangeBox } from '../components/shared/TimeRangeBox';
 import { PremiumBanner } from '../components/shared/PremiumBanner';
 import { api } from '../services/apifyService';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
@@ -47,16 +48,17 @@ const LockedVideoCard = ({ item, onPress }) => (
   >
     <Image 
       source={{ uri: item.cover }} 
-      style={[styles.thumbnail, styles.blurredImage]}
+      style={[styles.thumbnail, { opacity: 0.5 }]}
       resizeMode="cover"
     />
-    <View style={styles.lockOverlay}>
+    <View style={[styles.lockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
       <Text style={styles.lockIcon}>🔒</Text>
     </View>
   </TouchableOpacity>
 );
 
 export const VideosScreen = () => {
+  const { theme } = useTheme();
   const [selectedCountry, setSelectedCountry] = useState('US');
   const [selectedSort, setSelectedSort] = useState('hot');
   const [videos, setVideos] = useState([]);
@@ -138,8 +140,8 @@ export const VideosScreen = () => {
   );
 
   const FooterMessage = () => (
-    <View style={styles.footerContainer}>
-      <Text style={styles.footerText}>
+    <View style={[styles.footerContainer, { borderTopColor: theme.border }]}>
+      <Text style={[styles.footerText, { color: theme.textSecondary }]}>
         Discover more trending content with our premium subscription!
       </Text>
     </View>
@@ -285,13 +287,11 @@ const styles = StyleSheet.create({
   footerContainer: {
     padding: 20,
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopWidth: StyleSheet.hairlineWidth,
     marginTop: 16,
   },
   footerText: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },

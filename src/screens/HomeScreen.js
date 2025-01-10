@@ -12,91 +12,94 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppLayout } from '../components/shared/AppLayout';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
 const CARD_HEIGHT = 200;
 
 export const HomeScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+  
   return (
-    <SafeAreaView style={styles.container}>
-      <AppLayout showFilters={false}>
-        <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Ionicons name="trending-up" size={32} color="#FF2D55" />
-            <Text style={styles.title}>Trendify</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={styles.header}>
+        <View style={styles.titleContainer}>
+          <Ionicons name="trending-up" size={32} color={theme.accent} />
+          <Text style={[styles.title, { color: theme.text }]}>Trendify</Text>
+        </View>
+        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+          Discover What's Hot
+        </Text>
+      </View>
+
+      <View style={styles.cardsContainer}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('Hashtags')}
+        >
+          <Image 
+            source={require('../assets/images/hashtags.jpg')}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+          <View style={styles.cardOverlay}>
+            <LinearGradient
+              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
+              style={styles.cardGradient}
+            />
+            <View style={styles.cardContent}>
+              <Ionicons name="apps" size={32} color="#fff" />
+              <Text style={styles.cardText}>Hashtags</Text>
+              <Text style={styles.cardSubtext}>Trending Topics</Text>
+            </View>
           </View>
-          <Text style={styles.subtitle}>Discover What's Hot</Text>
-        </View>
-        
-        <View style={styles.content}>
-          <TouchableOpacity 
-            style={[styles.card, styles.cardElevated]}
-            onPress={() => navigation.navigate('Hashtags')}
-          >
-            <Image 
-              source={require('../assets/images/hashtags.jpg')}
-              style={styles.cardImage}
-              resizeMode="cover"
-            />
-            <View style={styles.cardOverlay}>
-              <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
-                style={styles.cardGradient}
-              />
-              <View style={styles.cardContent}>
-                <Ionicons name="apps" size={32} color="#fff" />
-                <Text style={styles.cardText}>Hashtags</Text>
-                <Text style={styles.cardSubtext}>Trending Topics</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+        </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.card, styles.cardElevated]}
-            onPress={() => navigation.navigate('Songs')}
-          >
-            <Image 
-              source={require('../assets/images/songs.jpg')}
-              style={styles.cardImage}
-              resizeMode="cover"
+        <TouchableOpacity 
+          style={[styles.card, styles.cardElevated]}
+          onPress={() => navigation.navigate('Songs')}
+        >
+          <Image 
+            source={require('../assets/images/songs.jpg')}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+          <View style={styles.cardOverlay}>
+            <LinearGradient
+              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
+              style={styles.cardGradient}
             />
-            <View style={styles.cardOverlay}>
-              <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
-                style={styles.cardGradient}
-              />
-              <View style={styles.cardContent}>
-                <Ionicons name="musical-notes" size={32} color="#fff" />
-                <Text style={styles.cardText}>Songs</Text>
-                <Text style={styles.cardSubtext}>Popular Songs</Text>
-              </View>
+            <View style={styles.cardContent}>
+              <Ionicons name="musical-notes" size={32} color="#fff" />
+              <Text style={styles.cardText}>Songs</Text>
+              <Text style={styles.cardSubtext}>Popular Songs</Text>
             </View>
-          </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.card, styles.cardElevated]}
-            onPress={() => navigation.navigate('Videos')}
-          >
-            <Image 
-              source={require('../assets/images/videos.jpg')}
-              style={styles.cardImage}
-              resizeMode="cover"
+        <TouchableOpacity 
+          style={[styles.card, styles.cardElevated]}
+          onPress={() => navigation.navigate('Videos')}
+        >
+          <Image 
+            source={require('../assets/images/videos.jpg')}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+          <View style={styles.cardOverlay}>
+            <LinearGradient
+              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
+              style={styles.cardGradient}
             />
-            <View style={styles.cardOverlay}>
-              <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
-                style={styles.cardGradient}
-              />
-              <View style={styles.cardContent}>
-                <Ionicons name="videocam" size={32} color="#fff" />
-                <Text style={styles.cardText}>Videos</Text>
-                <Text style={styles.cardSubtext}>Trending Videos</Text>
-              </View>
+            <View style={styles.cardContent}>
+              <Ionicons name="videocam" size={32} color="#fff" />
+              <Text style={styles.cardText}>Videos</Text>
+              <Text style={styles.cardSubtext}>Trending Videos</Text>
             </View>
-          </TouchableOpacity>
-        </View>
-      </AppLayout>
+          </View>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -104,14 +107,10 @@ export const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   header: {
     padding: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   titleContainer: {
     flexDirection: 'row',
@@ -120,19 +119,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 34,
     fontWeight: '800',
-    color: '#FF2D55',
     marginLeft: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     marginTop: 4,
     marginLeft: 42,
   },
-  content: {
+  cardsContainer: {
     flex: 1,
     padding: 16,
-    paddingTop: 24,
+    paddingTop: 0,
   },
   card: {
     width: CARD_WIDTH,

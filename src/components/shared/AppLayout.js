@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { CountryDropdown } from './CountryDropdown';
 import { TimeRangeBox } from './TimeRangeBox';
+import { useTheme } from '../../context/ThemeContext';
 
 export const AppLayout = ({ 
   children, 
@@ -14,16 +15,24 @@ export const AppLayout = ({
   showTitle = false,
   showFilters = true
 }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {showTitle && (
-        <View style={styles.header}>
-          <Text style={styles.appTitle}>Trendify</Text>
+        <View style={[styles.header, { backgroundColor: theme.background }]}>
+          <Text style={[styles.appTitle, { color: theme.accent }]}>Trendify</Text>
         </View>
       )}
 
       {showFilters && (
-        <View style={styles.filters}>
+        <View style={[
+          styles.filterContainer, 
+          { 
+            backgroundColor: theme.background,
+            borderBottomColor: theme.border
+          }
+        ]}>
           <View style={styles.filtersRow}>
             <View style={styles.leftControls}>
               <CountryDropdown
@@ -31,11 +40,12 @@ export const AppLayout = ({
                 onSelect={onSelectCountry}
                 onPremiumPress={onPremiumPress}
                 type={type}
+                containerStyle={[styles.dropdown, { backgroundColor: theme.surface }]}
               />
               <View style={styles.filterSpacing} />
               {extraFilters}
               <View style={styles.filterSpacing} />
-              <TimeRangeBox />
+              <TimeRangeBox style={{ backgroundColor: theme.surface }} />
             </View>
             {rightControl && (
               <View style={styles.rightControl}>
@@ -46,7 +56,7 @@ export const AppLayout = ({
         </View>
       )}
 
-      <View style={styles.content}>
+      <View style={[styles.content, { backgroundColor: theme.background }]}>
         {children}
       </View>
     </View>
@@ -56,11 +66,9 @@ export const AppLayout = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   header: {
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     shadowColor: '#000',
@@ -76,13 +84,10 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
-  filters: {
+  filterContainer: {
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
     zIndex: 2,
   },
   filtersRow: {
@@ -104,13 +109,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  toggleButton: {
-    position: 'absolute',
-    right: 16,
-    padding: 4,
-  },
-  toggleText: {
-    fontSize: 16,
-    color: '#007AFF',
+  dropdown: {
+    width: '100%',
+    padding: 8,
+    borderRadius: 8,
   },
 }); 

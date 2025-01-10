@@ -9,120 +9,18 @@ import {
   Linking,
   ActivityIndicator,
   Modal,
+  LinearGradient,
 } from 'react-native';
 import { api } from '../services/apifyService';
 import { AppLayout } from '../components/shared/AppLayout';
 import { PremiumBanner } from '../components/shared/PremiumBanner';
 import { RankDisplay } from '../components/shared/RankDisplay';
 import { CountryDropdown } from '../components/shared/CountryDropdown';
+import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-
-const SongCard = ({ item, onPress }) => (
-  <TouchableOpacity style={styles.songCard} onPress={onPress}>
-    <View style={styles.rankBadge}>
-      <Text style={styles.rankBadgeText}>#{item.rank}</Text>
-    </View>
-    <Image 
-      source={{ uri: item.cover }} 
-      style={styles.coverImage}
-      resizeMode="cover"
-    />
-    <View style={styles.songInfo}>
-      <Text style={styles.songTitle} numberOfLines={1}>{item.title}</Text>
-      <Text style={styles.songAuthor} numberOfLines={1}>{item.author}</Text>
-    </View>
-  </TouchableOpacity>
-);
-
-const LockedSongCard = ({ item, onPress }) => (
-  <TouchableOpacity style={styles.songCard} onPress={onPress}>
-    <View style={styles.rankBadge}>
-      <Text style={[styles.rankBadgeText, styles.blurredText]}>#{item.rank}</Text>
-    </View>
-    <View style={styles.lockedCoverContainer}>
-      <Image 
-        source={{ uri: item.cover }} 
-        style={[styles.coverImage, styles.blurredImage]}
-        resizeMode="cover"
-      />
-      <View style={styles.lockOverlay}>
-        <Text style={styles.lockIcon}>🔒</Text>
-      </View>
-    </View>
-    <View style={styles.songInfo}>
-      <Text style={[styles.songTitle, styles.blurredText]} numberOfLines={1}>
-        {item.title.slice(0, 3)}...
-      </Text>
-      <Text style={[styles.songAuthor, styles.blurredText]} numberOfLines={1}>
-        {item.author.slice(0, 3)}...
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
-
-const SongListItem = ({ item, onPress }) => (
-  <TouchableOpacity style={styles.songListItem} onPress={onPress}>
-    <RankDisplay rank={item.rank} />
-    <View style={styles.songColumn}>
-      <Image 
-        source={{ uri: item.cover }} 
-        style={styles.listCoverImage}
-        resizeMode="cover"
-      />
-      <View style={styles.songDetails}>
-        <Text style={styles.listSongTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.listSongAuthor} numberOfLines={1}>{item.author}</Text>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
-
-const LockedSongListItem = ({ item, onPress }) => {
-  const truncateText = (text, length) => {
-    if (text.length <= length) return text;
-    return `${text.slice(0, length)}...`;
-  };
-
-  return (
-    <TouchableOpacity style={styles.songListItem} onPress={onPress}>
-      <RankDisplay rank={item.rank} isBlurred={true} />
-      <View style={styles.songColumn}>
-        <View style={styles.lockedListCoverContainer}>
-          <Image 
-            source={{ uri: item.cover }} 
-            style={[styles.listCoverImage, styles.blurredImage]}
-            resizeMode="cover"
-          />
-          <View style={styles.listLockOverlay}>
-            <Text style={styles.lockIcon}>🔒</Text>
-          </View>
-        </View>
-        <View style={styles.songDetails}>
-          <Text style={[styles.listSongTitle, styles.blurredText]} numberOfLines={1}>
-            {truncateText(item.title, 6)}
-          </Text>
-          <Text style={[styles.listSongAuthor, styles.blurredText]} numberOfLines={1}>
-            {truncateText(item.author, 4)}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-const TableHeader = () => (
-  <View style={styles.headerRow}>
-    <View style={styles.rankHeader}>
-      <Text style={styles.headerText}>Rank</Text>
-    </View>
-    <View style={styles.songHeader}>
-      <Text style={styles.headerText}>Songs</Text>
-    </View>
-  </View>
-);
 
 export const SongsScreen = () => {
+  const { theme } = useTheme();
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -139,13 +37,9 @@ export const SongsScreen = () => {
       setLoading(true);
       setError(null);
       const data = await api.getTopSongs(selectedCountry);
-      console.log('Songs data:', data);
-      if (data.length === 0) {
-        setError('No songs available at the moment');
-      }
       setSongs(data);
     } catch (error) {
-      console.error('Error in loadSongs:', error);
+      console.error(error);
       setError('Failed to load songs');
     } finally {
       setLoading(false);
@@ -162,6 +56,141 @@ export const SongsScreen = () => {
 
   const MAX_SONGS = 20;
   const FREE_SONGS = 10;
+
+  const dynamicStyles = {
+    footerContainer: {
+      borderTopColor: theme.border,
+    },
+    rankBadge: {
+      backgroundColor: theme.isDark ? 'rgba(0, 0, 0, 0.7)' : '#FF2D55',
+    },
+  };
+
+  const SongCard = ({ item, onPress }) => (
+    <TouchableOpacity 
+      style={[styles.songCard, { backgroundColor: theme.cardBackground }]} 
+      onPress={onPress}
+    >
+      <View style={[styles.rankBadge, dynamicStyles.rankBadge]}>
+        <Text style={styles.rankBadgeText}>#{item.rank}</Text>
+      </View>
+      <Image 
+        source={{ uri: item.cover }} 
+        style={styles.coverImage}
+        resizeMode="cover"
+      />
+      <View style={styles.songInfo}>
+        <Text style={[styles.songTitle, { color: theme.text }]} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={[styles.songAuthor, { color: theme.textSecondary }]} numberOfLines={1}>
+          {item.author}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const LockedSongCard = ({ item, onPress }) => (
+    <TouchableOpacity 
+      style={[styles.songCard, { backgroundColor: theme.surface }]} 
+      onPress={onPress}
+    >
+      <View style={[styles.rankBadge, { backgroundColor: 'rgba(0, 0, 0, 0.4)' }]}>
+        <Text style={[styles.rankBadgeText, { color: '#999' }]}>#{item.rank}</Text>
+      </View>
+      <View style={styles.lockedCoverContainer}>
+        <Image 
+          source={{ uri: item.cover }} 
+          style={[styles.coverImage, { opacity: 0.5 }]}
+          resizeMode="cover"
+        />
+        <View style={[styles.lockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
+          <Text style={styles.lockIcon}>🔒</Text>
+        </View>
+      </View>
+      <View style={styles.songInfo}>
+        <Text style={[styles.songTitle, styles.blurredText, { color: theme.text }]} numberOfLines={1}>
+          {item.title.slice(0, 3)}...
+        </Text>
+        <Text style={[styles.songAuthor, styles.blurredText, { color: theme.textSecondary }]} numberOfLines={1}>
+          {item.author.slice(0, 3)}...
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const SongListItem = ({ item, onPress }) => (
+    <TouchableOpacity 
+      style={[styles.songListItem, { 
+        backgroundColor: theme.cardBackground,
+        borderBottomColor: theme.border 
+      }]} 
+      onPress={onPress}
+    >
+      <RankDisplay 
+        rank={item.rank}
+        theme={theme}
+      />
+      <View style={styles.songColumn}>
+        <Image 
+          source={{ uri: item.cover }} 
+          style={styles.listCoverImage}
+          resizeMode="cover"
+        />
+        <View style={styles.songDetails}>
+          <Text style={[styles.listSongTitle, { color: theme.text }]} numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text style={[styles.listSongAuthor, { color: theme.textSecondary }]} numberOfLines={1}>
+            {item.author}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const LockedSongListItem = ({ item, onPress }) => {
+    const truncateText = (text, length) => {
+      if (text.length <= length) return text;
+      return `${text.slice(0, length)}...`;
+    };
+
+    return (
+      <TouchableOpacity 
+        style={[styles.songListItem, { 
+          backgroundColor: theme.surface,
+          borderBottomColor: theme.border 
+        }]} 
+        onPress={onPress}
+      >
+        <RankDisplay 
+          rank={item.rank}
+          isBlurred={true}
+          theme={theme}
+        />
+        <View style={styles.songColumn}>
+          <View style={styles.lockedListCoverContainer}>
+            <Image 
+              source={{ uri: item.cover }} 
+              style={[styles.listCoverImage, { opacity: 0.5 }]}
+              resizeMode="cover"
+            />
+            <View style={[styles.listLockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
+              <Text style={styles.lockIcon}>🔒</Text>
+            </View>
+          </View>
+          <View style={styles.songDetails}>
+            <Text style={[styles.listSongTitle, styles.blurredText, { color: theme.text }]} numberOfLines={1}>
+              {truncateText(item.title, 6)}
+            </Text>
+            <Text style={[styles.listSongAuthor, styles.blurredText, { color: theme.textSecondary }]} numberOfLines={1}>
+              {truncateText(item.author, 4)}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderSong = ({ item, index }) => {
     if (index < FREE_SONGS) {
@@ -220,10 +249,24 @@ export const SongsScreen = () => {
   );
 
   const FooterMessage = () => (
-    <View style={styles.footerContainer}>
-      <Text style={styles.footerText}>
+    <View style={[styles.footerContainer, dynamicStyles.footerContainer]}>
+      <Text style={[styles.footerText, { color: theme.textSecondary }]}>
         Discover more trending songs with our premium subscription!
       </Text>
+    </View>
+  );
+
+  const TableHeader = () => (
+    <View style={[styles.headerRow, { 
+      backgroundColor: theme.surface,
+      borderBottomColor: theme.border
+    }]}>
+      <View style={styles.rankHeader}>
+        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Rank</Text>
+      </View>
+      <View style={styles.songHeader}>
+        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Songs</Text>
+      </View>
     </View>
   );
 
@@ -246,8 +289,7 @@ export const SongsScreen = () => {
       <AppLayout 
         selectedCountry={selectedCountry} 
         onSelectCountry={setSelectedCountry}
-        onPremiumPress={handleUpgradePress}
-        type="songs"
+        scrollableFilters={true}
       >
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error}</Text>
@@ -271,36 +313,46 @@ export const SongsScreen = () => {
         >
           <Ionicons 
             name={isListView ? "grid-outline" : "list-outline"} 
-            size={20}
-            color="#007AFF"
+            size={20} 
+            color={theme.accent}
           />
         </TouchableOpacity>
       }
-      onPremiumPress={handleUpgradePress}
-      type="songs"
     >
-      {isListView && <TableHeader />}
-      <FlatList
-        data={songs.slice(0, MAX_SONGS)}
-        renderItem={renderSong}
-        keyExtractor={(item) => item.id}
-        numColumns={isListView ? 1 : 2}
-        key={isListView ? 'list' : 'grid'}
-        columnWrapperStyle={!isListView && styles.songRow}
-        contentContainerStyle={isListView && styles.listContainer}
-        refreshing={loading}
-        onRefresh={loadSongs}
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text>No songs found</Text>
-          </View>
-        }
-        ListFooterComponent={<FooterMessage />}
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <FlatList
+          data={songs.slice(0, MAX_SONGS)}
+          renderItem={renderSong}
+          keyExtractor={(item) => item.id}
+          numColumns={isListView ? 1 : 2}
+          key={isListView ? 'list' : 'grid'}
+          columnWrapperStyle={!isListView && styles.songRow}
+          contentContainerStyle={isListView ? styles.listContainer : styles.gridContainer}
+          ListHeaderComponent={isListView ? <TableHeader /> : null}
+          refreshing={loading}
+          onRefresh={loadSongs}
+          ListEmptyComponent={
+            <View style={styles.centered}>
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                No songs found
+              </Text>
+            </View>
+          }
+          ListFooterComponent={<FooterMessage />}
+        />
+        {renderUpgradeModal()}
+      </View>
+      <CountryDropdown
+        selectedCountry={selectedCountry}
+        onSelect={setSelectedCountry}
+        onPremiumPress={handleUpgradePress}
+        type="songs"
       />
-      {renderUpgradeModal()}
     </AppLayout>
   );
 };
+
+const BORDER_RADIUS = 12;
 
 const styles = StyleSheet.create({
   centered: {
@@ -311,14 +363,12 @@ const styles = StyleSheet.create({
   songRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    marginTop: 12,
+    paddingHorizontal: 16,
   },
   songCard: {
     width: '48%',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -328,13 +378,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     position: 'relative',
+    marginBottom: 16,
   },
   rankBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS / 2,
     paddingHorizontal: 8,
     paddingVertical: 4,
     zIndex: 1,
@@ -344,11 +395,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  rankText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 0,
+    textAlign: 'center',
+  },
   coverImage: {
     width: '100%',
     aspectRatio: 1,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: BORDER_RADIUS,
+    borderTopRightRadius: BORDER_RADIUS,
   },
   songInfo: {
     padding: 12,
@@ -366,7 +424,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   blurredImage: {
-    opacity: 0.3,
+    opacity: 0.5,
   },
   lockedCoverContainer: {
     position: 'relative',
@@ -393,7 +451,7 @@ const styles = StyleSheet.create({
   },
   upgradeModal: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: BORDER_RADIUS,
     padding: 24,
     width: '80%',
     maxWidth: 400,
@@ -434,8 +492,7 @@ const styles = StyleSheet.create({
   footerContainer: {
     padding: 20,
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopWidth: StyleSheet.hairlineWidth,
     marginTop: 16,
   },
   footerText: {
@@ -445,17 +502,31 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   viewToggle: {
-    padding: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 4,
+  },
+  viewToggleText: {
+    fontSize: 18,
+    color: '#007AFF',
+    lineHeight: 18,
   },
   songListItem: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
     alignItems: 'center',
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 4,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   rankColumn: {
     width: 50,
@@ -471,26 +542,25 @@ const styles = StyleSheet.create({
   listCoverImage: {
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS / 1.5,
   },
   songDetails: {
-    marginLeft: 16,
+    marginLeft: 12,
     flex: 1,
   },
   listSongTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
-    color: '#000',
   },
   listSongAuthor: {
     fontSize: 14,
-    color: '#666',
+    color: '#8E8E93',
   },
   lockedListCoverContainer: {
     position: 'relative',
-    width: 50,
-    height: 50,
+    width: 56,
+    height: 56,
   },
   listLockOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -504,16 +574,20 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#f8f9fa',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    marginTop: 16,
   },
   headerText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   rankHeader: {
     width: 50,
@@ -537,5 +611,12 @@ const styles = StyleSheet.create({
   },
   blurredRankChange: {
     opacity: 0.3,
+  },
+  cardGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  gridContainer: {
+    paddingTop: 16,
+    paddingBottom: 100,
   },
 }); 

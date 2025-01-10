@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export const RankDisplay = ({ rank, rankDiffType = 2, rankDiff, isBlurred = false }) => {
+export const RankDisplay = ({ rank, rankDiffType = 2, rankDiff, isBlurred = false, theme }) => {
   const RankChange = () => {
     if (rankDiffType === 4) {
       return <Text style={[styles.rankDiff, styles.rankNew]}>NEW</Text>;
     }
     
     if (rankDiffType === 2) {
-      return <Text style={styles.rankSame}>-</Text>;
+      return <Text style={[styles.rankSame, { color: theme.textSecondary }]}>-</Text>;
     }
 
     const color = rankDiffType === 1 ? styles.rankUp : styles.rankDown;
@@ -17,8 +17,14 @@ export const RankDisplay = ({ rank, rankDiffType = 2, rankDiff, isBlurred = fals
   };
 
   return (
-    <View style={styles.rankContainer}>
-      <Text style={[styles.rank, isBlurred && styles.blurredText]}>{rank}</Text>
+    <View style={styles.container}>
+      <Text style={[
+        styles.rankText,
+        isBlurred && styles.blurredText,
+        { color: theme.text }
+      ]}>
+        {rank}
+      </Text>
       {isBlurred ? (
         <View style={styles.blurredRankChange}>
           <RankChange />
@@ -31,11 +37,11 @@ export const RankDisplay = ({ rank, rankDiffType = 2, rankDiff, isBlurred = fals
 };
 
 const styles = StyleSheet.create({
-  rankContainer: {
+  container: {
     width: 50,
     alignItems: 'center',
   },
-  rank: {
+  rankText: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 4,
@@ -46,7 +52,6 @@ const styles = StyleSheet.create({
   },
   rankNew: {
     color: '#007AFF',
-    textTransform: 'uppercase',
   },
   rankUp: {
     color: '#34C759',
@@ -56,7 +61,6 @@ const styles = StyleSheet.create({
   },
   rankSame: {
     fontSize: 12,
-    color: '#8E8E93',
   },
   blurredText: {
     opacity: 0.4,
