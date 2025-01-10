@@ -16,18 +16,29 @@ import { api } from '../services/apifyService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { FooterMessage } from '../components/shared/FooterMessage';
 
 const MAX_HASHTAGS = 20;
-const FREE_HASHTAGS = 10;
+const FREE_HASHTAGS = 15;
 
 const formatNumber = (num) => {
-  if (num >= 1000000) {
-    return `${Math.round(num / 1000000)}M`;
+  if (num === undefined || num === null) {
+    return '0';
   }
-  if (num >= 1000) {
-    return `${Math.round(num / 1000)}K`;
+
+  const number = Number(num);
+
+  if (isNaN(number)) {
+    return '0';
   }
-  return num.toString();
+
+  if (number >= 1000000) {
+    return `${Math.round(number / 1000000)}M`;
+  }
+  if (number >= 1000) {
+    return `${Math.round(number / 1000)}K`;
+  }
+  return number.toString();
 };
 
 export const HashtagsScreen = () => {
@@ -36,17 +47,26 @@ export const HashtagsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState('US');
+  const [selectedIndustry, setSelectedIndustry] = useState('entertainment');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isGlobalView, setIsGlobalView] = useState(false);
+
+  const handleModeSwitch = () => {
+    setIsGlobalView(!isGlobalView);
+  };
 
   useEffect(() => {
     loadHashtags();
-  }, [selectedCountry]);
+  }, [selectedCountry, selectedIndustry, isGlobalView]);
 
   const loadHashtags = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.getTopHashtags(selectedCountry);
+      const data = await api.getTopHashtags(
+        isGlobalView ? selectedIndustry : selectedCountry, 
+        isGlobalView
+      );
       setHashtags(data);
     } catch (error) {
       console.error(error);
@@ -74,9 +94,11 @@ export const HashtagsScreen = () => {
       <View style={styles.statsHeader}>
         <Text style={[styles.headerText, { color: theme.textSecondary }]}>Posts</Text>
       </View>
-      <View style={styles.statsHeader}>
-        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Views</Text>
-      </View>
+      {!isGlobalView && (
+        <View style={styles.statsHeader}>
+          <Text style={[styles.headerText, { color: theme.textSecondary }]}>Views</Text>
+        </View>
+      )}
     </View>
   );
 
@@ -99,7 +121,7 @@ export const HashtagsScreen = () => {
       <View style={styles.rankContainer}>
         <RankDisplay 
           rank={item.rank} 
-          rankDiffType={item.rankDiffType} 
+          rankDiffType={item.rankDiffType}
           rankDiff={item.rankDiff}
           theme={theme}
         />
@@ -111,14 +133,16 @@ export const HashtagsScreen = () => {
       </View>
       <View style={styles.statsValue}>
         <Text style={[styles.statsText, { color: theme.textSecondary }]}>
-          {formatNumber(item.posts)}
+          {formatNumber(item?.posts)}
         </Text>
       </View>
-      <View style={styles.statsValue}>
-        <Text style={[styles.statsText, { color: theme.textSecondary }]}>
-          {formatNumber(item.views)}
-        </Text>
-      </View>
+      {!isGlobalView && (
+        <View style={styles.statsValue}>
+          <Text style={[styles.statsText, { color: theme.textSecondary }]}>
+            {formatNumber(item?.views)}
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 
@@ -140,52 +164,44 @@ export const HashtagsScreen = () => {
         onPress={onPress}
         activeOpacity={0.6}
       >
-        <LinearGradient
-          colors={[theme.cardBackground, theme.surface]}
-          style={[styles.hashtagGradient, { opacity: theme.isDark ? 0.3 : 0.1 }]}
-        />
+        <View style={[styles.lockOverlay, { backgroundColor: theme.surface }]} />
         <View style={styles.rankContainer}>
           <RankDisplay 
             rank={item.rank} 
-            rankDiffType={item.rankDiffType} 
+            rankDiffType={item.rankDiffType}
             rankDiff={item.rankDiff}
             isBlurred={true}
             theme={theme}
           />
         </View>
         <View style={styles.hashtagInfo}>
-          <Text style={[styles.hashtagName, { color: theme.textSecondary, opacity: 0.5 }]}>
+          <Text style={[styles.hashtagName, { color: theme.textSecondary, opacity: 0.4 }]}>
             #{truncateText(item.name, 4)}
           </Text>
         </View>
         <View style={styles.statsValue}>
-          <Text style={[styles.statsText, { color: theme.textSecondary, opacity: 0.5 }]}>
-            {formatNumber(item.posts)}
+          <Text style={[styles.statsText, { color: theme.textSecondary, opacity: 0.4 }]}>
+            {formatNumber(item?.posts)}
           </Text>
         </View>
-        <View style={styles.statsValue}>
-          <Text style={[styles.statsText, { color: theme.textSecondary, opacity: 0.5 }]}>
-            {formatNumber(item.views)}
-          </Text>
-        </View>
-        <View style={[styles.lockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
-          <View style={styles.lockIconContainer}>
-            <Ionicons name="lock-closed" size={20} color={theme.textSecondary} />
+        {!isGlobalView && (
+          <View style={styles.statsValue}>
+            <Text style={[styles.statsText, { color: theme.textSecondary, opacity: 0.4 }]}>
+              {formatNumber(item?.views)}
+            </Text>
           </View>
+        )}
+        <View style={styles.lockOverlay}>
+          <Ionicons 
+            name="lock-closed" 
+            size={20} 
+            color={theme.textSecondary} 
+            style={{ opacity: 0.6 }} 
+          />
         </View>
       </TouchableOpacity>
     );
   };
-
-  const FooterMessage = () => (
-    <View style={[styles.footerContainer, {
-      borderTopColor: theme.border
-    }]}>
-      <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-        Unlock more trending hashtags with our premium subscription!
-      </Text>
-    </View>
-  );
 
   const renderHashtag = ({ item, index }) => {
     if (index < FREE_HASHTAGS) {
@@ -233,8 +249,23 @@ export const HashtagsScreen = () => {
       <AppLayout 
         selectedCountry={selectedCountry} 
         onSelectCountry={setSelectedCountry}
+        selectedIndustry={selectedIndustry}
+        onSelectIndustry={setSelectedIndustry}
         onPremiumPress={handleUpgradePress}
         type="hashtags"
+        isIndustryMode={isGlobalView}
+        rightControl={
+          <TouchableOpacity 
+            style={styles.viewToggle}
+            onPress={handleModeSwitch}
+          >
+            <Ionicons 
+              name={isGlobalView ? "earth-outline" : "location-outline"}
+              size={20} 
+              color={theme.accent}
+            />
+          </TouchableOpacity>
+        }
       >
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#666" />
@@ -247,8 +278,23 @@ export const HashtagsScreen = () => {
     <AppLayout 
       selectedCountry={selectedCountry} 
       onSelectCountry={setSelectedCountry}
+      selectedIndustry={selectedIndustry}
+      onSelectIndustry={setSelectedIndustry}
       onPremiumPress={handleUpgradePress}
       type="hashtags"
+      isIndustryMode={isGlobalView}
+      rightControl={
+        <TouchableOpacity 
+          style={styles.viewToggle}
+          onPress={handleModeSwitch}
+        >
+          <Ionicons 
+            name={isGlobalView ? "earth-outline" : "location-outline"}
+            size={20} 
+            color={theme.accent}
+          />
+        </TouchableOpacity>
+      }
     >
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <FlatList
@@ -278,9 +324,10 @@ export const HashtagsScreen = () => {
 const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     backgroundColor: '#f8f9fa',
     borderRadius: 16,
     marginHorizontal: 16,
@@ -427,11 +474,6 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     backgroundColor: '#f8f9fa',
   },
-  lockIconContainer: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    padding: 8,
-  },
   lockOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -484,6 +526,9 @@ const styles = StyleSheet.create({
   },
   listContentContainer: {
     flexGrow: 1,
-    paddingBottom: 100,
+    paddingBottom: 20,
+  },
+  viewToggle: {
+    padding: 4,
   },
 }); 

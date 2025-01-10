@@ -8,6 +8,12 @@ export const TimeRangeBox = () => (
 );
 
 const styles = StyleSheet.create({
+  container: {
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
   timeRange: {
     backgroundColor: '#f8f8f8',
     paddingVertical: 6,

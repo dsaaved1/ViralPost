@@ -18,12 +18,14 @@ import { TimeRangeBox } from '../components/shared/TimeRangeBox';
 import { PremiumBanner } from '../components/shared/PremiumBanner';
 import { api } from '../services/apifyService';
 import { useTheme } from '../context/ThemeContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { FooterMessage } from '../components/shared/FooterMessage';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
 const SPACING = 1;
 const ITEM_WIDTH = (width - (COLUMN_COUNT + 1) * SPACING) / COLUMN_COUNT;
-const VIDEOS_PER_PAGE = 12;
+const VIDEOS_PER_PAGE = 15;
 const MAX_VIDEOS = 24;
 
 const VideoCard = ({ item, onPress }) => (
@@ -52,7 +54,7 @@ const LockedVideoCard = ({ item, onPress }) => (
       resizeMode="cover"
     />
     <View style={[styles.lockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
-      <Text style={styles.lockIcon}>🔒</Text>
+      <Ionicons name="lock-closed" size={20} color="#fff" />
     </View>
   </TouchableOpacity>
 );
@@ -74,7 +76,8 @@ export const VideosScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.getTopVideos(selectedCountry);
+      const response = await fetch('https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-videos-trends-hot-us/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1');
+      const data = await response.json();
       setVideos(data);
     } catch (error) {
       console.error(error);
@@ -139,12 +142,14 @@ export const VideosScreen = () => {
     </Modal>
   );
 
-  const FooterMessage = () => (
-    <View style={[styles.footerContainer, { borderTopColor: theme.border }]}>
-      <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-        Discover more trending content with our premium subscription!
-      </Text>
-    </View>
+  // Pre-render the SortDropdown with matching styles
+  const sortDropdown = (
+    <SortDropdown
+      selectedSort={selectedSort}
+      onSelect={setSelectedSort}
+      onPremiumPress={handleUpgradePress}
+      containerStyle={[styles.dropdown, { backgroundColor: theme.surface }]}
+    />
   );
 
   if (loading) {
@@ -166,15 +171,9 @@ export const VideosScreen = () => {
     <AppLayout 
       selectedCountry={selectedCountry} 
       onSelectCountry={setSelectedCountry}
-      extraFilters={
-        <SortDropdown
-          selectedSort={selectedSort}
-          onSelect={setSelectedSort}
-          onPremiumPress={handleUpgradePress}
-        />
-      }
       onPremiumPress={handleUpgradePress}
       type="videos"
+      extraFilters={sortDropdown}
     >
       <FlatList
         data={videos.slice(0, MAX_VIDEOS)}
@@ -204,6 +203,7 @@ export const VideosScreen = () => {
 const styles = StyleSheet.create({
   videoList: {
     padding: SPACING,
+    paddingBottom: 20,
   },
   videoItem: {
     width: '33.33%',
@@ -299,5 +299,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginBottom: 8,
+  },
+  dropdown: {
+    // Remove custom styles to use SortDropdown's built-in ones
   },
 }); 

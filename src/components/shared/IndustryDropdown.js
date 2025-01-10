@@ -3,67 +3,84 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
 } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export const SORT_OPTIONS = [
-  { id: 'hot', name: 'Hot' },
-  { id: 'likes', name: 'Likes', premium: true },
-  { id: 'comments', name: 'Comments', premium: true },
-  { id: 'shares', name: 'Shares', premium: true },
+const INDUSTRY_OPTIONS = [
+  { id: 'entertainment', name: 'Entertainment' },
+  { id: 'travel', name: 'Travel' },
+  { id: 'tech', name: 'Tech & Electronics' },
+  { id: 'health', name: 'Health' },
+  { id: 'games', name: 'Games' },
+  { id: 'education', name: 'Education' },
+  { id: 'beauty', name: 'Beauty & Personal Care' },
 ];
 
-export const SortDropdown = ({ selectedSort, onSelect, onPremiumPress, containerStyle }) => {
+export const IndustryDropdown = ({ selectedIndustry, onSelect, containerStyle, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme } = useTheme();
+
+  const selectedOption = INDUSTRY_OPTIONS.find(opt => opt.id === selectedIndustry) || INDUSTRY_OPTIONS[0];
 
   return (
     <View style={styles.dropdownContainer}>
       <TouchableOpacity 
         style={[
           styles.dropdownButton,
-          { backgroundColor: theme.surface },
-          containerStyle
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border 
+          },
+          containerStyle,
+          disabled && styles.disabled
         ]}
-        onPress={() => setIsOpen(!isOpen)}
+        onPress={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
       >
-        <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
-          {selectedSort === 'hot' ? 'Hot' : selectedSort}
+        <Text style={[
+          styles.dropdownButtonText,
+          { 
+            color: theme.text,
+            opacity: disabled ? 0.5 : 0.9 
+          }
+        ]}>
+          {selectedOption?.name}
         </Text>
         <Text style={[styles.dropdownIcon, isOpen && styles.dropdownIconOpen]}>▼</Text>
       </TouchableOpacity>
 
       {isOpen && (
-        <View style={[styles.dropdownList, { backgroundColor: theme.surface }]}>
-          {SORT_OPTIONS.map((item) => (
+        <ScrollView style={[
+          styles.dropdownList,
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border 
+          }
+        ]}>
+          {INDUSTRY_OPTIONS.map((option) => (
             <TouchableOpacity
-              key={item.id}
-              style={[styles.dropdownItem, { borderBottomColor: theme.border }]}
+              key={option.id}
+              style={[
+                styles.dropdownItem,
+                { borderBottomColor: theme.border }
+              ]}
               onPress={() => {
-                if (item.premium) {
-                  onPremiumPress();
-                } else {
-                  onSelect(item.id);
-                }
+                onSelect(option.id);
                 setIsOpen(false);
               }}
             >
               <Text style={[
                 styles.dropdownItemText,
                 { color: theme.text },
-                item.id === selectedSort && styles.selectedSort,
-                item.premium && styles.blurredText
+                option.id === selectedIndustry && styles.selectedIndustry
               ]}>
-                {item.name}
+                {option.name}
               </Text>
-              {item.premium && (
-                <Ionicons name="lock-closed" size={16} color={theme.textSecondary} />
-              )}
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       )}
     </View>
   );
@@ -78,19 +95,15 @@ const styles = StyleSheet.create({
   dropdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
     width: 150,
-    height: 36,
   },
   dropdownButtonText: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
   },
   dropdownIcon: {
     fontSize: 12,
@@ -105,9 +118,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '100%',
     left: 0,
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginTop: 4,
     maxHeight: 200,
@@ -120,44 +131,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    overflow: 'hidden',
+    overflow: 'scroll',
   },
   dropdownItem: {
     padding: 12,
-    height: 44,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    justifyContent: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
   },
   dropdownItemText: {
     fontSize: 14,
-    color: '#333',
+    flex: 1,
   },
-  selectedSort: {
+  selectedIndustry: {
     color: '#007AFF',
     fontWeight: 'bold',
   },
-  container: {
-    height: 36,
-    width: 150,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    justifyContent: 'center',
-    backgroundColor: '#f8f8f8',
-  },
-  dropdownListContainer: {
-    position: 'relative',
-  },
-  lockIcon: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginLeft: 8,
-  },
-  blurredText: {
-    opacity: 0.3,
+  disabled: {
+    opacity: 0.5,
   },
 }); 

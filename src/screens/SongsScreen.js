@@ -18,6 +18,7 @@ import { RankDisplay } from '../components/shared/RankDisplay';
 import { CountryDropdown } from '../components/shared/CountryDropdown';
 import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { FooterMessage } from '../components/shared/FooterMessage';
 
 export const SongsScreen = () => {
   const { theme } = useTheme();
@@ -55,7 +56,7 @@ export const SongsScreen = () => {
   };
 
   const MAX_SONGS = 20;
-  const FREE_SONGS = 10;
+  const FREE_SONGS = 15;
 
   const dynamicStyles = {
     footerContainer: {
@@ -121,16 +122,15 @@ export const SongsScreen = () => {
 
   const SongListItem = ({ item, onPress }) => (
     <TouchableOpacity 
-      style={[styles.songListItem, { 
-        backgroundColor: theme.cardBackground,
-        borderBottomColor: theme.border 
-      }]} 
+      style={[styles.songListItem, { backgroundColor: theme.cardBackground }]}
       onPress={onPress}
     >
-      <RankDisplay 
-        rank={item.rank}
-        theme={theme}
-      />
+      <View style={styles.rankColumn}>
+        <RankDisplay 
+          rank={item.rank}
+          theme={theme}
+        />
+      </View>
       <View style={styles.songColumn}>
         <Image 
           source={{ uri: item.cover }} 
@@ -157,17 +157,16 @@ export const SongsScreen = () => {
 
     return (
       <TouchableOpacity 
-        style={[styles.songListItem, { 
-          backgroundColor: theme.surface,
-          borderBottomColor: theme.border 
-        }]} 
+        style={[styles.songListItem, { backgroundColor: theme.surface }]}
         onPress={onPress}
       >
-        <RankDisplay 
-          rank={item.rank}
-          isBlurred={true}
-          theme={theme}
-        />
+        <View style={styles.rankColumn}>
+          <RankDisplay 
+            rank={item.rank}
+            isBlurred={true}
+            theme={theme}
+          />
+        </View>
         <View style={styles.songColumn}>
           <View style={styles.lockedListCoverContainer}>
             <Image 
@@ -176,7 +175,7 @@ export const SongsScreen = () => {
               resizeMode="cover"
             />
             <View style={[styles.listLockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
-              <Text style={styles.lockIcon}>🔒</Text>
+              <Ionicons name="lock-closed" size={20} color="#fff" />
             </View>
           </View>
           <View style={styles.songDetails}>
@@ -246,14 +245,6 @@ export const SongsScreen = () => {
         </View>
       </View>
     </Modal>
-  );
-
-  const FooterMessage = () => (
-    <View style={[styles.footerContainer, dynamicStyles.footerContainer]}>
-      <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-        Discover more trending songs with our premium subscription!
-      </Text>
-    </View>
   );
 
   const TableHeader = () => (
@@ -327,7 +318,10 @@ export const SongsScreen = () => {
           numColumns={isListView ? 1 : 2}
           key={isListView ? 'list' : 'grid'}
           columnWrapperStyle={!isListView && styles.songRow}
-          contentContainerStyle={isListView ? styles.listContainer : styles.gridContainer}
+          contentContainerStyle={[
+            isListView ? styles.listContainer : styles.gridContainer,
+            { paddingBottom: 20 }
+          ]}
           ListHeaderComponent={isListView ? <TableHeader /> : null}
           refreshing={loading}
           onRefresh={loadSongs}
@@ -338,7 +332,7 @@ export const SongsScreen = () => {
               </Text>
             </View>
           }
-          ListFooterComponent={<FooterMessage />}
+          ListFooterComponent={songs.length > 0 ? <FooterMessage /> : null}
         />
         {renderUpgradeModal()}
       </View>
@@ -440,8 +434,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   lockIcon: {
-    fontSize: 24,
-    color: '#007AFF',
+    marginLeft: 8,
+    opacity: 0.7,
   },
   modalOverlay: {
     flex: 1,
@@ -571,12 +565,14 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 0,
+    paddingBottom: 20,
   },
   headerRow: {
     flexDirection: 'row',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     backgroundColor: '#f8f9fa',
     borderRadius: 16,
     marginHorizontal: 16,
@@ -617,6 +613,10 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     paddingTop: 16,
-    paddingBottom: 100,
+    paddingBottom: 20,
+  },
+  listContentContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
 }); 

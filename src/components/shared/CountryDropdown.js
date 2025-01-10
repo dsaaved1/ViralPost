@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import { API_ENDPOINTS } from '../../services/apifyService';
+import { useTheme } from '../../context/ThemeContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // All possible countries with their availability per tab
 const ALL_COUNTRIES = [
@@ -26,12 +28,47 @@ export const COUNTRIES = {
   videos: ALL_COUNTRIES
 };
 
-export const CountryDropdown = ({ selectedCountry, onSelect, onPremiumPress, type = 'hashtags' }) => {
+const INDUSTRY_OPTIONS = [
+  { id: 'entertainment', name: 'Entertainment' },
+  { id: 'travel', name: 'Travel' },
+  { id: 'tech', name: 'Tech & Electronics' },
+  { id: 'health', name: 'Health' },
+  { id: 'games', name: 'Games' },
+  { id: 'education', name: 'Education' },
+  { id: 'beauty', name: 'Beauty & Personal Care' },
+];
+
+export const CountryDropdown = ({ 
+  selectedCountry, 
+  onSelect, 
+  containerStyle,
+  onPremiumPress,
+  type,
+  isIndustryMode,
+  disabled
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const availableCountries = COUNTRIES[type];
-  const selectedCountryName = availableCountries.find(c => c.id === selectedCountry)?.name;
+  const { theme } = useTheme();
+
+  // Use the correct options list based on mode
+  const options = isIndustryMode ? INDUSTRY_OPTIONS : ALL_COUNTRIES;
+  
+  // Set default selection if none exists
+  useEffect(() => {
+    if (isIndustryMode && !INDUSTRY_OPTIONS.find(opt => opt.id === selectedCountry)) {
+      onSelect('entertainment');
+    } else if (!isIndustryMode && !ALL_COUNTRIES.find(c => c.id === selectedCountry)) {
+      onSelect('US');
+    }
+  }, [isIndustryMode]);
+
+  const selectedOption = isIndustryMode 
+    ? INDUSTRY_OPTIONS.find(opt => opt.id === selectedCountry) || INDUSTRY_OPTIONS[0]
+    : ALL_COUNTRIES.find(c => c.id === selectedCountry) || ALL_COUNTRIES[0];
 
   const isPremium = (country) => {
+    if (isIndustryMode) return false; // No premium options in industry mode
+    
     // If country is marked as premium, it's premium in all tabs
     if (country.premium) return true;
     
@@ -45,37 +82,69 @@ export const CountryDropdown = ({ selectedCountry, onSelect, onPremiumPress, typ
   return (
     <View style={styles.dropdownContainer}>
       <TouchableOpacity 
-        style={styles.dropdownButton}
-        onPress={() => setIsOpen(!isOpen)}
+        style={[
+          styles.dropdownButton,
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border 
+          },
+          containerStyle,
+          disabled && styles.disabled
+        ]}
+        onPress={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
       >
-        <Text style={styles.dropdownButtonText}>{selectedCountryName}</Text>
+        <Text style={[
+          styles.dropdownButtonText,
+          { 
+            color: theme.text,
+            opacity: disabled ? 0.5 : 0.9 
+          }
+        ]}>
+          {selectedOption?.name}
+        </Text>
         <Text style={[styles.dropdownIcon, isOpen && styles.dropdownIconOpen]}>▼</Text>
       </TouchableOpacity>
 
       {isOpen && (
-        <ScrollView style={styles.dropdownList}>
-          {availableCountries.map((country) => (
+        <ScrollView style={[
+          styles.dropdownList,
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border 
+          }
+        ]}>
+          {options.map((option) => (
             <TouchableOpacity
-              key={country.id}
-              style={styles.dropdownItem}
+              key={option.id}
+              style={[
+                styles.dropdownItem,
+                { borderBottomColor: theme.border }
+              ]}
               onPress={() => {
-                if (isPremium(country)) {
+                if (isPremium(option)) {
                   onPremiumPress();
                 } else {
-                  onSelect(country.id);
+                  onSelect(option.id);
                 }
                 setIsOpen(false);
               }}
             >
               <Text style={[
                 styles.dropdownItemText,
-                country.id === selectedCountry && styles.selectedCountry,
-                isPremium(country) && styles.blurredText
+                { color: theme.text },
+                option.id === selectedCountry && styles.selectedCountry,
+                isPremium(option) && styles.blurredText
               ]}>
-                {country.name}
+                {option.name}
               </Text>
-              {isPremium(country) && (
-                <Text style={[styles.lockIcon, styles.blurredText]}>🔒</Text>
+              {isPremium(option) && (
+                <Ionicons 
+                  name="lock-closed" 
+                  size={16} 
+                  color={theme.textSecondary} 
+                  style={styles.blurredText} 
+                />
               )}
             </TouchableOpacity>
           ))}
@@ -94,18 +163,15 @@ const styles = StyleSheet.create({
   dropdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
     width: 150,
   },
   dropdownButtonText: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
   },
   dropdownIcon: {
     fontSize: 12,
@@ -120,9 +186,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '100%',
     left: 0,
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginTop: 4,
     maxHeight: 200,
@@ -140,14 +204,12 @@ const styles = StyleSheet.create({
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   dropdownItemText: {
     fontSize: 14,
-    color: '#333',
     flex: 1,
   },
   selectedCountry: {
@@ -155,11 +217,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   blurredText: {
-    color: '#999',
-  },
-  lockIcon: {
-    fontSize: 12,
-    color: '#999',
-    marginLeft: 8,
+    opacity: 0.4,
   },
 }); 

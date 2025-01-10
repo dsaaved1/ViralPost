@@ -1,21 +1,100 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CountryDropdown } from './CountryDropdown';
-import { TimeRangeBox } from './TimeRangeBox';
 import { useTheme } from '../../context/ThemeContext';
+import { IndustryDropdown } from './IndustryDropdown';
 
 export const AppLayout = ({ 
   children, 
   selectedCountry, 
   onSelectCountry,
+  selectedIndustry,
+  onSelectIndustry,
   extraFilters,
   rightControl,
   onPremiumPress,
   type,
+  isIndustryMode,
   showTitle = false,
   showFilters = true
 }) => {
   const { theme } = useTheme();
+
+  const renderFilters = () => {
+    if (type === 'hashtags') {
+      return (
+        <>
+          <View style={[styles.filterBox, !isIndustryMode && styles.activeFilter]}>
+            <Text style={[styles.filterTitle, { 
+              color: theme.textSecondary,
+              opacity: isIndustryMode ? 0.5 : 1
+            }]}>
+              Country
+            </Text>
+            <CountryDropdown
+              selectedCountry={selectedCountry}
+              onSelect={onSelectCountry}
+              onPremiumPress={onPremiumPress}
+              type={type}
+              disabled={isIndustryMode}
+              containerStyle={[
+                styles.dropdown, 
+                { backgroundColor: theme.surface },
+                isIndustryMode && styles.disabledDropdown
+              ]}
+            />
+          </View>
+          <View style={styles.filterSpacing} />
+          <View style={[styles.filterBox, isIndustryMode && styles.activeFilter]}>
+            <Text style={[styles.filterTitle, { 
+              color: theme.textSecondary,
+              opacity: !isIndustryMode ? 0.5 : 1
+            }]}>
+              Industry
+            </Text>
+            <IndustryDropdown
+              selectedIndustry={selectedIndustry}
+              onSelect={onSelectIndustry}
+              disabled={!isIndustryMode}
+              containerStyle={[
+                styles.dropdown, 
+                { backgroundColor: theme.surface },
+                !isIndustryMode && styles.disabledDropdown
+              ]}
+            />
+          </View>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <View style={styles.filterBox}>
+          <Text style={[styles.filterTitle, { color: theme.textSecondary }]}>
+            Country
+          </Text>
+          <CountryDropdown
+            selectedCountry={selectedCountry}
+            onSelect={onSelectCountry}
+            onPremiumPress={onPremiumPress}
+            type={type}
+            containerStyle={[styles.dropdown, { backgroundColor: theme.surface }]}
+          />
+        </View>
+        {type === 'videos' && extraFilters && (
+          <>
+            <View style={styles.filterSpacing} />
+            <View style={styles.filterBox}>
+              <Text style={[styles.filterTitle, { color: theme.textSecondary }]}>
+                Sort by
+              </Text>
+              {extraFilters}
+            </View>
+          </>
+        )}
+      </>
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -26,26 +105,10 @@ export const AppLayout = ({
       )}
 
       {showFilters && (
-        <View style={[
-          styles.filterContainer, 
-          { 
-            backgroundColor: theme.background,
-            borderBottomColor: theme.border
-          }
-        ]}>
+        <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
           <View style={styles.filtersRow}>
             <View style={styles.leftControls}>
-              <CountryDropdown
-                selectedCountry={selectedCountry}
-                onSelect={onSelectCountry}
-                onPremiumPress={onPremiumPress}
-                type={type}
-                containerStyle={[styles.dropdown, { backgroundColor: theme.surface }]}
-              />
-              <View style={styles.filterSpacing} />
-              {extraFilters}
-              <View style={styles.filterSpacing} />
-              <TimeRangeBox style={{ backgroundColor: theme.surface }} />
+              {renderFilters()}
             </View>
             {rightControl && (
               <View style={styles.rightControl}>
@@ -86,15 +149,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   filterContainer: {
-    padding: 16,
-    borderBottomWidth: 1,
+    padding: 8,
+    paddingBottom: 4,
     zIndex: 2,
+    marginTop: 8,
   },
   filtersRow: {
-    marginHorizontal: 8,
+    marginHorizontal: 4,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 4,
   },
   leftControls: {
     flexDirection: 'row',
@@ -111,7 +176,26 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     width: '100%',
+    height: 36,
     padding: 8,
     borderRadius: 8,
+    justifyContent: 'center',
+  },
+  filterTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 2,
+    marginLeft: 4,
+  },
+  filterBox: {
+    height: 48,
+    justifyContent: 'flex-end',
+    paddingBottom: 2,
+  },
+  activeFilter: {
+    opacity: 1,
+  },
+  disabledDropdown: {
+    opacity: 0.5,
   },
 }); 

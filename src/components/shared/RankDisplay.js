@@ -1,43 +1,57 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export const RankDisplay = ({ rank, rankDiffType = 2, rankDiff, isBlurred = false, theme }) => {
-  const RankChange = () => {
-    if (rankDiffType === 4) {
-      return <Text style={[styles.rankDiff, styles.rankNew]}>NEW</Text>;
+export const RankDisplay = ({ rank, rankDiffType, rankDiff, isBlurred = false, theme }) => {
+  const getRankChangeDisplay = () => {
+    switch (rankDiffType) {
+      case 4:
+        return 'NEW';
+      case 1:
+        return `↑${Math.abs(rankDiff || 1)}`;
+      case 3:
+        return `↓${Math.abs(rankDiff || 1)}`;
+      case 2:
+      default:
+        return '-';
     }
-    
-    if (rankDiffType === 2) {
-      return <Text style={[styles.rankSame, { color: theme.textSecondary }]}>-</Text>;
-    }
+  };
 
-    const color = rankDiffType === 1 ? styles.rankUp : styles.rankDown;
-    const symbol = rankDiffType === 1 ? '↑' : '↓';
-    return <Text style={[styles.rankDiff, color]}>{symbol}{Math.abs(rankDiff)}</Text>;
+  const getRankChangeColor = () => {
+    switch (rankDiffType) {
+      case 4:
+        return '#007AFF';
+      case 1:
+        return '#34C759';
+      case 3:
+        return '#FF3B30';
+      case 2:
+      default:
+        return theme.textSecondary;
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.rankContainer}>
       <Text style={[
         styles.rankText,
-        isBlurred && styles.blurredText,
-        { color: theme.text }
+        { color: theme.text },
+        isBlurred && styles.blurredText
       ]}>
         {rank}
       </Text>
-      {isBlurred ? (
-        <View style={styles.blurredRankChange}>
-          <RankChange />
-        </View>
-      ) : (
-        <RankChange />
-      )}
+      <Text style={[
+        styles.rankChange,
+        { color: getRankChangeColor() },
+        isBlurred && styles.blurredText
+      ]}>
+        {getRankChangeDisplay()}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  rankContainer: {
     width: 50,
     alignItems: 'center',
   },
@@ -46,26 +60,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 4,
   },
-  rankDiff: {
+  rankChange: {
     fontSize: 12,
     fontWeight: '500',
   },
-  rankNew: {
-    color: '#007AFF',
-  },
-  rankUp: {
-    color: '#34C759',
-  },
-  rankDown: {
-    color: '#FF3B30',
-  },
-  rankSame: {
-    fontSize: 12,
-  },
   blurredText: {
     opacity: 0.4,
-  },
-  blurredRankChange: {
-    opacity: 0.3,
   },
 }); 

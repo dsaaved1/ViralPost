@@ -16,7 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
-const CARD_HEIGHT = 200;
+const CARD_HEIGHT = 195;
 
 export const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();

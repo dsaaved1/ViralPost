@@ -16,9 +16,28 @@ const API_ENDPOINTS = {
   }
 };
 
+const INDUSTRY_ENDPOINT = 'https://gist.githubusercontent.com/diegoas2/e7e1c3cc75018c30e2276dffc7213462/raw/bbedf8051e17648ba6f901585430363843a04a06/entertainment-hashtags.json';
+
 export const api = {
-  async getTopHashtags(country = 'US') {
+  async getTopHashtags(country = 'US', isIndustryMode = false) {
     try {
+      if (isIndustryMode) {
+        const response = await axios.get(INDUSTRY_ENDPOINT);
+        
+        if (!Array.isArray(response.data)) {
+          return [];
+        }
+
+        return response.data.map(item => ({
+          id: item.hashtag_id,
+          name: item.hashtag_name,
+          posts: item.publish_cnt,
+          rank: item.rank,
+          rankDiff: item.rank_diff || 0,
+          rankDiffType: item.rank_diff_type
+        }));
+      }
+
       const endpoint = API_ENDPOINTS.hashtags[country] || API_ENDPOINTS.hashtags.US;
       const response = await axios.get(endpoint);
       
