@@ -18,15 +18,16 @@ import { TimeRangeBox } from '../components/shared/TimeRangeBox';
 import { PremiumBanner } from '../components/shared/PremiumBanner';
 import { api } from '../services/apifyService';
 import { useTheme } from '../context/ThemeContext';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { FooterMessage } from '../components/shared/FooterMessage';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
 const SPACING = 1;
 const ITEM_WIDTH = (width - (COLUMN_COUNT + 1) * SPACING) / COLUMN_COUNT;
-const VIDEOS_PER_PAGE = 15;
-const MAX_VIDEOS = 24;
+const VIDEOS_PER_PAGE = 12;
+const MAX_VIDEOS = 18;
+const FREE_VIDEOS = 9;
 
 const VideoCard = ({ item, onPress }) => (
   <TouchableOpacity 
@@ -44,7 +45,7 @@ const VideoCard = ({ item, onPress }) => (
 
 const LockedVideoCard = ({ item, onPress }) => (
   <TouchableOpacity 
-    style={styles.videoCard}
+    style={[styles.videoCard, { opacity: 0.7 }]}
     onPress={onPress}
     activeOpacity={0.7}
   >
@@ -53,8 +54,12 @@ const LockedVideoCard = ({ item, onPress }) => (
       style={[styles.thumbnail, { opacity: 0.5 }]}
       resizeMode="cover"
     />
-    <View style={[styles.lockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
-      <Ionicons name="lock-closed" size={20} color="#fff" />
+    <View style={styles.lockOverlay}>
+      <Ionicons 
+        name="lock-closed" 
+        size={20} 
+        color="#fff"
+      />
     </View>
   </TouchableOpacity>
 );
@@ -76,9 +81,12 @@ export const VideosScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-videos-trends-hot-us/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1');
-      const data = await response.json();
-      setVideos(data);
+      const data = await api.getTopVideos(selectedCountry);
+      const videos = data.slice(0, MAX_VIDEOS).map((video, index) => ({
+        ...video,
+        isLocked: index >= FREE_VIDEOS
+      }));
+      setVideos(videos);
     } catch (error) {
       console.error(error);
       setError('Failed to load videos');
@@ -96,17 +104,17 @@ export const VideosScreen = () => {
   };
 
   const renderVideo = ({ item, index }) => {
-    if (index < VIDEOS_PER_PAGE) {
+    if (!item.cover || !item.url) {
+      return null;
+    }
+
+    if (index < FREE_VIDEOS) {
       return (
         <VideoCard 
           item={item}
           onPress={() => openVideo(item.url)}
         />
       );
-    }
-    
-    if (index >= MAX_VIDEOS) {
-      return null;
     }
     
     return <LockedVideoCard item={item} onPress={handleUpgradePress} />;
@@ -142,16 +150,6 @@ export const VideosScreen = () => {
     </Modal>
   );
 
-  // Pre-render the SortDropdown with matching styles
-  const sortDropdown = (
-    <SortDropdown
-      selectedSort={selectedSort}
-      onSelect={setSelectedSort}
-      onPremiumPress={handleUpgradePress}
-      containerStyle={[styles.dropdown, { backgroundColor: theme.surface }]}
-    />
-  );
-
   if (loading) {
     return (
       <AppLayout 
@@ -171,30 +169,43 @@ export const VideosScreen = () => {
     <AppLayout 
       selectedCountry={selectedCountry} 
       onSelectCountry={setSelectedCountry}
+      extraFilters={
+        <SortDropdown
+          selectedSort={selectedSort}
+          onSelect={setSelectedSort}
+          onPremiumPress={handleUpgradePress}
+        />
+      }
       onPremiumPress={handleUpgradePress}
       type="videos"
-      extraFilters={sortDropdown}
     >
-      <FlatList
-        data={videos.slice(0, MAX_VIDEOS)}
-        renderItem={({ item, index }) => (
-          <View style={styles.videoItem}>
-            {renderVideo({ item, index })}
-          </View>
-        )}
-        keyExtractor={item => item.id}
-        numColumns={3}
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text style={styles.emptyText}>No videos found</Text>
-            <Text style={styles.footerText}>
-              Unlock more trending videos with our premium subscription!
-            </Text>
-          </View>
-        }
-        ListFooterComponent={videos.length > 0 ? <FooterMessage /> : null}
-        contentContainerStyle={styles.videoList}
-      />
+      {videos.length === 0 ? (
+        <View style={styles.centered}>
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+            No data available yet
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={videos}
+          renderItem={({ item, index }) => (
+            <View style={styles.videoItem}>
+              {renderVideo({ item, index })}
+            </View>
+          )}
+          keyExtractor={item => item.id}
+          numColumns={3}
+          ListEmptyComponent={
+            <View style={styles.centered}>
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                No videos found
+              </Text>
+            </View>
+          }
+          ListFooterComponent={videos.length > 0 ? <FooterMessage type="videos" /> : null}
+          contentContainerStyle={[styles.listContentContainer, { paddingBottom: 20 }]}
+        />
+      )}
       {renderUpgradeModal()}
     </AppLayout>
   );
@@ -203,7 +214,6 @@ export const VideosScreen = () => {
 const styles = StyleSheet.create({
   videoList: {
     padding: SPACING,
-    paddingBottom: 20,
   },
   videoItem: {
     width: '33.33%',
@@ -224,13 +234,13 @@ const styles = StyleSheet.create({
   },
   lockOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   lockIcon: {
     fontSize: 24,
-    color: '#007AFF',
+    color: '#fff',
   },
   centered: {
     flex: 1,
@@ -299,8 +309,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginBottom: 8,
-  },
-  dropdown: {
-    // Remove custom styles to use SortDropdown's built-in ones
   },
 }); 

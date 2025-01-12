@@ -55,8 +55,8 @@ export const SongsScreen = () => {
     Linking.openURL(link);
   };
 
-  const MAX_SONGS = 20;
-  const FREE_SONGS = 15;
+  const MAX_SONGS = 15;
+  const FREE_SONGS = 10;
 
   const dynamicStyles = {
     footerContainer: {
@@ -266,6 +266,7 @@ export const SongsScreen = () => {
       <AppLayout 
         selectedCountry={selectedCountry} 
         onSelectCountry={setSelectedCountry}
+        type="songs"
         scrollableFilters={true}
       >
         <View style={styles.centered}>
@@ -280,6 +281,7 @@ export const SongsScreen = () => {
       <AppLayout 
         selectedCountry={selectedCountry} 
         onSelectCountry={setSelectedCountry}
+        type="songs"
         scrollableFilters={true}
       >
         <View style={styles.centered}>
@@ -296,6 +298,7 @@ export const SongsScreen = () => {
     <AppLayout 
       selectedCountry={selectedCountry} 
       onSelectCountry={setSelectedCountry}
+      type="songs"
       extraFilters={null}
       rightControl={
         <TouchableOpacity 
@@ -332,7 +335,7 @@ export const SongsScreen = () => {
               </Text>
             </View>
           }
-          ListFooterComponent={songs.length > 0 ? <FooterMessage /> : null}
+          ListFooterComponent={songs.length > 0 ? <FooterMessage type="songs" /> : null}
         />
         {renderUpgradeModal()}
       </View>

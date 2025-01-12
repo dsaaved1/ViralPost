@@ -4,15 +4,27 @@ const API_ENDPOINTS = {
   hashtags: {
     US: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-hashtags-trends-us/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1',
     MX: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-hashtags-trends-mx/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1',
-    ID: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-hashtags-trends-indonesia/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1'
+    JP: 'https://api.apify.com/v2/datasets/QFoGlMR3P19N2SP6F/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    GB: 'https://api.apify.com/v2/datasets/fgnRUST8BJX1i9oxV/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    AU: 'https://api.apify.com/v2/datasets/8IDS8oBiZHXN0yAe7/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    CA: 'https://api.apify.com/v2/datasets/2QkDWW3XIv0c3pXoF/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    FR: 'https://api.apify.com/v2/datasets/QOKJGsA6HsvhS2cf5/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    BR: 'https://api.apify.com/v2/datasets/qcHVPBhtQd9Qf4nY7/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    DE: 'https://api.apify.com/v2/datasets/W82EiGKEQlNmfgGop/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    KR: 'https://api.apify.com/v2/datasets/seSPbaxvQTSuil6aV/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    ID: 'https://api.apify.com/v2/datasets/VCzrHsb5gVzeoSkYN/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    NG: 'https://api.apify.com/v2/datasets/M17KFmEUca4X9FTJf/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    IT: 'https://api.apify.com/v2/datasets/rOqHqmWhtTh4tvDer/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    ES: 'https://api.apify.com/v2/datasets/1kd9PNkafy7qbgTJe/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg'
+
   },
   songs: {
     US: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-songs-trends-us/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1',
     BR: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-song-trends-brazil/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1'
   },
   videos: {
-    US: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-videos-trends-hot-us/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1',
-    BR: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-videos-trends-brazil/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1'
+    US: 'https://api.apify.com/v2/datasets/wkUGrO2GoiaV2PhVm/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
+    BR: 'https://api.apify.com/v2/datasets/jpF8ukdEpkEsligCR/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg'
   }
 };
 
@@ -99,7 +111,8 @@ export const api = {
         cover: item.cover,
         duration: item.duration,
         url: item.item_url,
-        title: item.title
+        title: item.title,
+        country_code: item.country_code
       }));
     } catch (error) {
       console.error('Error fetching videos:', error);

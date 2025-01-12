@@ -9,13 +9,17 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 
 const INDUSTRY_OPTIONS = [
-  { id: 'entertainment', name: 'Entertainment' },
-  { id: 'travel', name: 'Travel' },
-  { id: 'tech', name: 'Tech & Electronics' },
-  { id: 'health', name: 'Health' },
-  { id: 'games', name: 'Games' },
-  { id: 'education', name: 'Education' },
+  { id: 'apparel', name: 'Apparel & Access' },
   { id: 'beauty', name: 'Beauty & Personal Care' },
+  { id: 'education', name: 'Education' },
+  { id: 'entertainment', name: 'Entertainment' },
+  { id: 'financial', name: 'Financial Services' },
+  { id: 'food', name: 'Food & Beverage' },
+  { id: 'games', name: 'Games' },
+  { id: 'sports', name: 'Sports & Outdoors' },
+  { id: 'tech', name: 'Tech & Electronics' },
+  { id: 'travel', name: 'Travel' },
+  { id: 'vehicle', name: 'Vehicle & Transportation' },
 ];
 
 export const IndustryDropdown = ({ selectedIndustry, onSelect, containerStyle, disabled }) => {

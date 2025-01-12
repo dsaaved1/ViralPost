@@ -26,10 +26,10 @@ export const HomeScreen = ({ navigation }) => {
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Ionicons name="trending-up" size={32} color={theme.accent} />
-          <Text style={[styles.title, { color: theme.text }]}>Trendify</Text>
+          <Text style={[styles.title, { color: theme.text }]}>ViralPost</Text>
         </View>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          Discover What's Hot
+          Discover What's Hot 
         </Text>
       </View>
 
@@ -49,7 +49,7 @@ export const HomeScreen = ({ navigation }) => {
               style={styles.cardGradient}
             />
             <View style={styles.cardContent}>
-              <Ionicons name="apps" size={32} color="#fff" />
+              <Text style={styles.cardIcon}>#</Text>
               <Text style={styles.cardText}>Hashtags</Text>
               <Text style={styles.cardSubtext}>Trending Topics</Text>
             </View>
@@ -73,7 +73,7 @@ export const HomeScreen = ({ navigation }) => {
             <View style={styles.cardContent}>
               <Ionicons name="musical-notes" size={32} color="#fff" />
               <Text style={styles.cardText}>Songs</Text>
-              <Text style={styles.cardSubtext}>Popular Songs</Text>
+              <Text style={styles.cardSubtext}>Trending Songs</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -111,20 +111,24 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingTop: Platform.OS === 'ios' ? 10 : 20,
+    marginBottom: 8,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 2,
   },
   title: {
     fontSize: 34,
     fontWeight: '800',
     marginLeft: 10,
+    letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 16,
     marginTop: 4,
     marginLeft: 42,
+    opacity: 0.8,
   },
   cardsContainer: {
     flex: 1,
@@ -138,6 +142,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
+    transform: [{ scale: 1 }],
   },
   cardElevated: {
     elevation: 8,
@@ -162,8 +167,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   cardContent: {
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
+  },
+  cardIcon: {
+    fontSize: 38,
+    fontWeight: '800',
+    color: '#fff',
+    marginBottom: 4,
   },
   cardText: {
     fontSize: 28,
@@ -171,10 +182,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginTop: 8,
     letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   cardSubtext: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.9)',
     marginTop: 4,
+    fontWeight: '500',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 }); 

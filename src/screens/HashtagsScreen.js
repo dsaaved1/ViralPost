@@ -17,9 +17,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { FooterMessage } from '../components/shared/FooterMessage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storageService } from '../services/storageService';
 
-const MAX_HASHTAGS = 20;
-const FREE_HASHTAGS = 15;
+const MAX_HASHTAGS = 15;
+const FREE_HASHTAGS = 10;
+
+const MAX_INDUSTRY_HASHTAGS = 15;
+const FREE_INDUSTRY_HASHTAGS = 10;
+
+const SAVED_HASHTAGS_KEY = '@saved_hashtags';
 
 const formatNumber = (num) => {
   if (num === undefined || num === null) {
@@ -38,6 +45,7 @@ const formatNumber = (num) => {
   if (number >= 1000) {
     return `${Math.round(number / 1000)}K`;
   }
+
   return number.toString();
 };
 
@@ -50,12 +58,16 @@ export const HashtagsScreen = () => {
   const [selectedIndustry, setSelectedIndustry] = useState('entertainment');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isGlobalView, setIsGlobalView] = useState(false);
+  const [savedItems, setSavedItems] = useState(new Set());
+  const [recentlySaved, setRecentlySaved] = useState(null);
+  const [savedHashtags, setSavedHashtags] = useState(new Set());
 
   const handleModeSwitch = () => {
     setIsGlobalView(!isGlobalView);
   };
 
   useEffect(() => {
+    loadSavedHashtags();
     loadHashtags();
   }, [selectedCountry, selectedIndustry, isGlobalView]);
 
@@ -76,8 +88,53 @@ export const HashtagsScreen = () => {
     }
   };
 
+  const loadSavedHashtags = async () => {
+    try {
+      const saved = await storageService.getSavedItems();
+      const hashtagIds = new Set(saved.unscheduled
+        .filter(item => item.type === 'hashtag')
+        .map(item => item.id));
+      setSavedHashtags(hashtagIds);
+    } catch (error) {
+      console.error('Error loading saved hashtags:', error);
+    }
+  };
+
   const handleUpgradePress = () => {
     setShowUpgradeModal(true);
+  };
+
+  const handleSaveHashtag = async (hashtag) => {
+    try {
+      const saved = await storageService.getSavedItems();
+      const newSaved = { ...saved };
+      
+      if (savedHashtags.has(hashtag.id)) {
+        // Remove hashtag
+        await storageService.removeHashtag(hashtag.id);
+        setSavedHashtags(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(hashtag.id);
+          return newSet;
+        });
+      } else {
+        // Add hashtag
+        const savedHashtag = {
+          id: hashtag.id,
+          type: 'hashtag',
+          name: hashtag.name,
+          createdAt: new Date().toISOString()
+        };
+        await storageService.saveHashtag(savedHashtag);
+        setSavedHashtags(prev => {
+          const newSet = new Set(prev);
+          newSet.add(hashtag.id);
+          return newSet;
+        });
+      }
+    } catch (error) {
+      console.error('Error saving hashtag:', error);
+    }
   };
 
   const TableHeader = () => (
@@ -89,7 +146,7 @@ export const HashtagsScreen = () => {
         <Text style={[styles.headerText, { color: theme.textSecondary }]}>Rank</Text>
       </View>
       <View style={styles.hashtagHeader}>
-        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Hashtag</Text>
+        <Text style={[styles.headerText, { color: theme.textSecondary }]}>Hashtags</Text>
       </View>
       <View style={styles.statsHeader}>
         <Text style={[styles.headerText, { color: theme.textSecondary }]}>Posts</Text>
@@ -102,49 +159,63 @@ export const HashtagsScreen = () => {
     </View>
   );
 
-  const HashtagItem = ({ item }) => (
-    <TouchableOpacity 
-      style={[
-        styles.hashtagItem, 
-        { 
-          backgroundColor: theme.cardBackground,
-          shadowColor: theme.text,
-        }
-      ]} 
-      onPress={() => Linking.openURL(`https://www.tiktok.com/tag/${item.name}`)}
-      activeOpacity={0.6}
-    >
-      <LinearGradient
-        colors={[theme.cardBackground, theme.surface]}
-        style={[styles.hashtagGradient, { opacity: 0.5 }]}
-      />
-      <View style={styles.rankContainer}>
-        <RankDisplay 
-          rank={item.rank} 
-          rankDiffType={item.rankDiffType}
-          rankDiff={item.rankDiff}
-          theme={theme}
+  const HashtagItem = ({ item }) => {
+    const { theme } = useTheme();
+    const isRecentlySaved = recentlySaved === item.id;
+    const isSaved = savedHashtags.has(item.id);
+    
+    return (
+      <View style={[styles.hashtagItem, { 
+        backgroundColor: theme.cardBackground,
+        shadowColor: theme.text,
+      }]}>
+        <LinearGradient
+          colors={[theme.cardBackground, theme.surface]}
+          style={[styles.hashtagGradient, { opacity: 0.5 }]}
         />
-      </View>
-      <View style={styles.hashtagInfo}>
-        <Text style={[styles.hashtagName, { 
-          color: theme.isDark ? '#FFFFFF' : theme.accent
-        }]}>#{item.name}</Text>
-      </View>
-      <View style={styles.statsValue}>
-        <Text style={[styles.statsText, { color: theme.textSecondary }]}>
-          {formatNumber(item?.posts)}
-        </Text>
-      </View>
-      {!isGlobalView && (
+        <View style={styles.rankContainer}>
+          <RankDisplay 
+            rank={item.rank} 
+            rankDiffType={item.rankDiffType}
+            rankDiff={item.rankDiff}
+            theme={theme}
+          />
+        </View>
+        <View style={styles.hashtagInfo}>
+          <TouchableOpacity 
+            onPress={() => Linking.openURL(`https://www.tiktok.com/tag/${item.name}`)}
+          >
+            <Text style={[styles.hashtagName, { 
+              color: theme.isDark ? '#FFFFFF' : theme.accent
+            }]}>#{item.name}</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.statsValue}>
           <Text style={[styles.statsText, { color: theme.textSecondary }]}>
-            {formatNumber(item?.views)}
+            {formatNumber(item?.posts)}
           </Text>
         </View>
-      )}
-    </TouchableOpacity>
-  );
+        {!isGlobalView && (
+          <View style={styles.statsValue}>
+            <Text style={[styles.statsText, { color: theme.textSecondary }]}>
+              {formatNumber(item?.views)}
+            </Text>
+          </View>
+        )}
+        
+        <TouchableOpacity 
+          style={styles.cornerSaveButton}
+          onPress={() => handleSaveHashtag(item)}
+        >
+          <Ionicons 
+            name={isSaved ? "heart" : "heart-outline"}
+            size={14} 
+            color={isSaved ? "#FF4B4B" : theme.textSecondary}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const LockedHashtagItem = ({ item, onPress }) => {
     const truncateText = (text, length) => {
@@ -204,9 +275,17 @@ export const HashtagsScreen = () => {
   };
 
   const renderHashtag = ({ item, index }) => {
-    if (index < FREE_HASHTAGS) {
+    const maxItems = isGlobalView ? MAX_INDUSTRY_HASHTAGS : MAX_HASHTAGS;
+    const freeItems = isGlobalView ? FREE_INDUSTRY_HASHTAGS : FREE_HASHTAGS;
+
+    if (index < freeItems) {
       return <HashtagItem item={item} />;
     }
+    
+    if (index >= maxItems) {
+      return null;
+    }
+    
     return <LockedHashtagItem item={item} onPress={handleUpgradePress} />;
   };
 
@@ -298,7 +377,7 @@ export const HashtagsScreen = () => {
     >
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <FlatList
-          data={hashtags.slice(0, MAX_HASHTAGS)}
+          data={hashtags.slice(0, isGlobalView ? MAX_INDUSTRY_HASHTAGS : MAX_HASHTAGS)}
           renderItem={renderHashtag}
           keyExtractor={(item) => item.id}
           refreshing={loading}
@@ -311,7 +390,7 @@ export const HashtagsScreen = () => {
               </Text>
             </View>
           }
-          ListFooterComponent={hashtags.length > 0 ? <FooterMessage /> : null}
+          ListFooterComponent={hashtags.length > 0 ? <FooterMessage isIndustryView={isGlobalView} type="hashtags" /> : null}
           style={{ backgroundColor: theme.background }}
           contentContainerStyle={styles.listContentContainer}
         />
@@ -384,6 +463,7 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: 8,
   },
   statsValue: {
     width: 80,
@@ -529,6 +609,18 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   viewToggle: {
+    padding: 4,
+  },
+  cornerSaveButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    padding: 4,
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
     padding: 4,
   },
 }); 

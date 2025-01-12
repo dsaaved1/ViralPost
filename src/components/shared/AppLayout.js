@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CountryDropdown } from './CountryDropdown';
 import { useTheme } from '../../context/ThemeContext';
 import { IndustryDropdown } from './IndustryDropdown';
+import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 export const AppLayout = ({ 
   children, 
@@ -96,6 +98,39 @@ export const AppLayout = ({
     );
   };
 
+  const showInfoToast = () => {
+    const message = "Data shows engagement from the last 7 days. List updated every 24 hours.";
+
+    Toast.show({
+      type: 'info',
+      text1: message,
+      position: 'top',
+      visibilityTime: 4000,
+      topOffset: 40,
+      props: {
+        style: {
+          width: '90%',
+          backgroundColor: theme.cardBackground,
+          borderRadius: 8,
+          padding: 12,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3,
+        },
+        textStyle: {
+          fontSize: 13,
+          color: theme.textSecondary,
+          textAlign: 'left',
+        }
+      }
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {showTitle && (
@@ -110,11 +145,9 @@ export const AppLayout = ({
             <View style={styles.leftControls}>
               {renderFilters()}
             </View>
-            {rightControl && (
-              <View style={styles.rightControl}>
-                {rightControl}
-              </View>
-            )}
+            <View style={styles.rightControls}>
+              {rightControl}
+            </View>
           </View>
         </View>
       )}
@@ -197,5 +230,18 @@ const styles = StyleSheet.create({
   },
   disabledDropdown: {
     opacity: 0.5,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  infoButton: {
+    padding: 4,
+  },
+  rightControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
   },
 }); 

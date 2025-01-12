@@ -24,23 +24,38 @@ export const SortDropdown = ({ selectedSort, onSelect, onPremiumPress, container
       <TouchableOpacity 
         style={[
           styles.dropdownButton,
-          { backgroundColor: theme.surface },
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border 
+          },
           containerStyle
         ]}
         onPress={() => setIsOpen(!isOpen)}
       >
-        <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
+        <Text style={[
+          styles.dropdownButtonText,
+          { color: theme.text }
+        ]}>
           {selectedSort === 'hot' ? 'Hot' : selectedSort}
         </Text>
         <Text style={[styles.dropdownIcon, isOpen && styles.dropdownIconOpen]}>▼</Text>
       </TouchableOpacity>
 
       {isOpen && (
-        <View style={[styles.dropdownList, { backgroundColor: theme.surface }]}>
+        <View style={[
+          styles.dropdownList,
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border 
+          }
+        ]}>
           {SORT_OPTIONS.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={[styles.dropdownItem, { borderBottomColor: theme.border }]}
+              style={[
+                styles.dropdownItem,
+                { borderBottomColor: theme.border }
+              ]}
               onPress={() => {
                 if (item.premium) {
                   onPremiumPress();
@@ -59,7 +74,12 @@ export const SortDropdown = ({ selectedSort, onSelect, onPremiumPress, container
                 {item.name}
               </Text>
               {item.premium && (
-                <Ionicons name="lock-closed" size={16} color={theme.textSecondary} />
+                <Ionicons 
+                  name="lock-closed" 
+                  size={16} 
+                  color={theme.textSecondary} 
+                  style={styles.blurredText} 
+                />
               )}
             </TouchableOpacity>
           ))}
@@ -78,19 +98,16 @@ const styles = StyleSheet.create({
   dropdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
     width: 150,
     height: 36,
   },
   dropdownButtonText: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
   },
   dropdownIcon: {
     fontSize: 12,
@@ -105,9 +122,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '100%',
     left: 0,
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginTop: 4,
     maxHeight: 200,
@@ -120,44 +135,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    overflow: 'hidden',
+    overflow: 'scroll',
   },
   dropdownItem: {
     padding: 12,
-    height: 44,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    justifyContent: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
   },
   dropdownItemText: {
     fontSize: 14,
-    color: '#333',
+    flex: 1,
   },
   selectedSort: {
     color: '#007AFF',
     fontWeight: 'bold',
   },
-  container: {
-    height: 36,
-    width: 150,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    justifyContent: 'center',
-    backgroundColor: '#f8f8f8',
-  },
-  dropdownListContainer: {
-    position: 'relative',
-  },
-  lockIcon: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginLeft: 8,
-  },
   blurredText: {
-    opacity: 0.3,
+    opacity: 0.4,
   },
 }); 

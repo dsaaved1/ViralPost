@@ -1,5 +1,5 @@
-import React from 'react';
-import { Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Platform, TouchableOpacity, Modal, View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,6 +11,9 @@ import { HashtagsScreen } from './src/screens/HashtagsScreen';
 import { SongsScreen } from './src/screens/SongsScreen';
 import { VideosScreen } from './src/screens/VideosScreen';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { notificationService } from './src/services/notificationService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -63,20 +66,69 @@ const TabNavigator = () => {
       <Tab.Screen 
         name="Saved" 
         component={SavedScreen}
-        options={{ headerTitle: 'Saved' }}
+        options={{ 
+          headerShown: false
+        }}
       />
       <Tab.Screen 
         name="Settings" 
         component={SettingsScreen}
-        options={{ headerTitle: 'Settings' }}
+        options={{ 
+          headerShown: false
+        }}
       />
     </Tab.Navigator>
   );
 };
 
-// Create a new component to wrap the navigation with theme
+const InfoModal = ({ visible, onClose, theme }) => {
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: theme.cardBackground }]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>About Our Data</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={theme.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={[styles.modalText, { color: theme.textSecondary }]}>
+            We aggregate trending hashtags from multiple data sources daily.
+          </Text>
+          <Text style={[styles.modalText, { color: theme.textSecondary }]}>
+            Metrics (posts, views, and rank) represent usage from the last 7 days.
+          </Text>
+          <Text style={[styles.modalText, { color: theme.textSecondary }]}>
+            Our goal is to provide accurate insights, but numbers are approximate and updated regularly.
+          </Text>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const AppNavigator = () => {
   const { theme } = useTheme();
+  const [showInfoModal, setShowInfoModal] = useState(false);
+
+  const renderInfoButton = () => (
+    <TouchableOpacity 
+      onPress={() => setShowInfoModal(true)}
+      style={{ marginRight: 16 }}
+    >
+      <Ionicons 
+        name="information-circle-outline" 
+        size={22}
+        color={theme.textSecondary}
+      />
+    </TouchableOpacity>
+  );
 
   return (
     <NavigationContainer>
@@ -101,9 +153,9 @@ const AppNavigator = () => {
         <Stack.Screen 
           name="Hashtags" 
           component={HashtagsScreen}
-          options={{ 
-            headerTitle: 'Hashtags',
-            headerBackTitle: 'Back'
+          options={{
+            title: 'Hashtags',
+            headerRight: renderInfoButton
           }}
         />
         <Stack.Screen 
@@ -111,7 +163,8 @@ const AppNavigator = () => {
           component={SongsScreen}
           options={{ 
             headerTitle: 'Songs',
-            headerBackTitle: 'Back'
+            headerBackTitle: 'Back',
+            headerRight: renderInfoButton
           }}
         />
         <Stack.Screen 
@@ -119,19 +172,85 @@ const AppNavigator = () => {
           component={VideosScreen}
           options={{ 
             headerTitle: 'Videos',
-            headerBackTitle: 'Back'
+            headerBackTitle: 'Back',
+            headerRight: renderInfoButton
           }}
         />
       </Stack.Navigator>
+      <InfoModal 
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        theme={theme}
+      />
     </NavigationContainer>
   );
 };
 
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    borderRadius: 14,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalText: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+});
+
 const App = () => {
+  useEffect(() => {
+    checkFirstLaunch();
+  }, []);
+
+  const checkFirstLaunch = async () => {
+    try {
+      const hasLaunched = await AsyncStorage.getItem('@has_launched');
+      if (!hasLaunched) {
+        // First launch - request permissions
+        await notificationService.requestPermissions();
+        await AsyncStorage.setItem('@has_launched', 'true');
+      }
+    } catch (error) {
+      console.error('Error checking first launch:', error);
+    }
+  };
+
   return (
-    <ThemeProvider>
-      <AppNavigator />
-    </ThemeProvider>
+    <>
+      <ThemeProvider>
+        <AppNavigator />
+      </ThemeProvider>
+      <Toast />
+    </>
   );
 };
 

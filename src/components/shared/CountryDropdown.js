@@ -12,14 +12,24 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // All possible countries with their availability per tab
 const ALL_COUNTRIES = [
+  // Free Tier (6 countries)
   { id: 'US', name: 'United States' },
+  { id: 'GB', name: 'United Kingdom' },
   { id: 'BR', name: 'Brazil' },
+  { id: 'FR', name: 'France' },
+  { id: 'JP', name: 'Japan' },
   { id: 'MX', name: 'Mexico', availableIn: ['hashtags', 'songs'] },
-  { id: 'ID', name: 'Indonesia', availableIn: ['hashtags'] },
-  { id: 'IT', name: 'Italy', premium: true },
-  { id: 'ES', name: 'Spain', premium: true },
-  { id: 'JP', name: 'Japan', premium: true },
-  { id: 'KR', name: 'South Korea', premium: true }
+
+  // Premium Tier (9 countries)
+  { id: 'CA', name: 'Canada', premium: true  },
+  { id: 'AU', name: 'Australia', premium: true },
+  { id: 'DE', name: 'Germany',  premium: true },
+  { id: 'KR', name: 'South Korea',  premium: true },
+  { id: 'ID', name: 'Indonesia',  premium: true },
+  { id: 'NG', name: 'Nigeria',  availableIn: ['hashtags', 'songs'], premium: true },
+  { id: 'PH', name: 'Philippines',  premium: true },
+  // { id: 'IT', name: 'Italy', premium: true  },
+  // { id: 'ES', name: 'Spain', premium: true  },
 ];
 
 export const COUNTRIES = {
