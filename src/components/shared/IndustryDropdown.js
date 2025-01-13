@@ -12,7 +12,7 @@ const INDUSTRY_OPTIONS = [
   { id: 'apparel', name: 'Apparel & Access' },
   { id: 'beauty', name: 'Beauty & Personal Care' },
   { id: 'education', name: 'Education' },
-  { id: 'entertainment', name: 'Entertainment' },
+  { id: 'entertainment', name: 'News & Entertainment' },
   { id: 'financial', name: 'Financial Services' },
   { id: 'food', name: 'Food & Beverage' },
   { id: 'games', name: 'Games' },

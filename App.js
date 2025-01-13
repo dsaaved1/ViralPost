@@ -99,14 +99,15 @@ const InfoModal = ({ visible, onClose, theme }) => {
           </View>
           
           <Text style={[styles.modalText, { color: theme.textSecondary }]}>
-            We aggregate trending hashtags from multiple data sources daily.
+           We aggregate data daily using powerful Tiktok data extractors and directly from TikTok Creative Center.
           </Text>
           <Text style={[styles.modalText, { color: theme.textSecondary }]}>
             Metrics (posts, views, and rank) represent usage from the last 7 days.
           </Text>
-          <Text style={[styles.modalText, { color: theme.textSecondary }]}>
-            Our goal is to provide accurate insights, but numbers are approximate and updated regularly.
-          </Text>
+          {/* <Text style={[styles.modalText, { color: theme.textSecondary }]}>
+          Our goal is to deliver accurate and reliable insights 
+            Our goal is to provide accurate insights, but numbers are approximate and updated constantly. 
+          </Text> */}
         </View>
       </View>
     </Modal>

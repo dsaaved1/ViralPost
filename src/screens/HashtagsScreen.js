@@ -68,21 +68,17 @@ export const HashtagsScreen = () => {
 
   useEffect(() => {
     loadSavedHashtags();
-    loadHashtags();
-  }, [selectedCountry, selectedIndustry, isGlobalView]);
+    fetchHashtags();
+  }, [selectedCountry, isGlobalView, selectedIndustry]);
 
-  const loadHashtags = async () => {
+  const fetchHashtags = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-      const data = await api.getTopHashtags(
-        isGlobalView ? selectedIndustry : selectedCountry, 
-        isGlobalView
-      );
+      const data = await api.getTopHashtags(selectedCountry, isGlobalView, selectedIndustry);
       setHashtags(data);
     } catch (error) {
-      console.error(error);
-      setError('Failed to load hashtags');
+      console.error('Error fetching hashtags:', error);
+      setHashtags([]);
     } finally {
       setLoading(false);
     }
@@ -339,7 +335,7 @@ export const HashtagsScreen = () => {
             onPress={handleModeSwitch}
           >
             <Ionicons 
-              name={isGlobalView ? "earth-outline" : "location-outline"}
+              name={isGlobalView ? "business" : "location-outline"}
               size={20} 
               color={theme.accent}
             />
@@ -368,7 +364,7 @@ export const HashtagsScreen = () => {
           onPress={handleModeSwitch}
         >
           <Ionicons 
-            name={isGlobalView ? "earth-outline" : "location-outline"}
+            name={isGlobalView ? "business" : "location-outline"}
             size={20} 
             color={theme.accent}
           />
@@ -381,7 +377,7 @@ export const HashtagsScreen = () => {
           renderItem={renderHashtag}
           keyExtractor={(item) => item.id}
           refreshing={loading}
-          onRefresh={loadHashtags}
+          onRefresh={fetchHashtags}
           ListHeaderComponent={<TableHeader />}
           ListEmptyComponent={
             <View style={styles.centered}>

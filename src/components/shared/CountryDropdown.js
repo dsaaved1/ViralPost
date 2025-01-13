@@ -229,4 +229,14 @@ const styles = StyleSheet.create({
   blurredText: {
     opacity: 0.4,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  viewToggle: {
+    padding: 4,
+    marginLeft: 4,
+  }
 }); 

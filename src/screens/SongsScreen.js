@@ -19,6 +19,7 @@ import { CountryDropdown } from '../components/shared/CountryDropdown';
 import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { FooterMessage } from '../components/shared/FooterMessage';
+import { storageService } from '../services/storageService';
 
 export const SongsScreen = () => {
   const { theme } = useTheme();
@@ -28,10 +29,15 @@ export const SongsScreen = () => {
   const [selectedCountry, setSelectedCountry] = useState('US');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isListView, setIsListView] = useState(true);
+  const [savedSongs, setSavedSongs] = useState(new Set());
 
   useEffect(() => {
     loadSongs();
   }, [selectedCountry]);
+
+  useEffect(() => {
+    loadSavedSongs();
+  }, []);
 
   const loadSongs = async () => {
     try {
@@ -47,12 +53,46 @@ export const SongsScreen = () => {
     }
   };
 
+  const loadSavedSongs = async () => {
+    try {
+      const saved = await storageService.getSavedItems();
+      const songIds = new Set(saved.unscheduled
+        .filter(item => item.type === 'song')
+        .map(item => item.id));
+      setSavedSongs(songIds);
+    } catch (error) {
+      console.error('Error loading saved songs:', error);
+    }
+  };
+
   const handleUpgradePress = () => {
     setShowUpgradeModal(true);
   };
 
   const openSongLink = (link) => {
     Linking.openURL(link);
+  };
+
+  const handleSaveSong = async (song) => {
+    try {
+      if (savedSongs.has(song.id)) {
+        await storageService.removeSong(song.id);
+        setSavedSongs(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(song.id);
+          return newSet;
+        });
+      } else {
+        await storageService.saveSong(song);
+        setSavedSongs(prev => {
+          const newSet = new Set(prev);
+          newSet.add(song.id);
+          return newSet;
+        });
+      }
+    } catch (error) {
+      console.error('Error saving song:', error);
+    }
   };
 
   const MAX_SONGS = 15;
@@ -120,34 +160,51 @@ export const SongsScreen = () => {
     </TouchableOpacity>
   );
 
-  const SongListItem = ({ item, onPress }) => (
-    <TouchableOpacity 
-      style={[styles.songListItem, { backgroundColor: theme.cardBackground }]}
-      onPress={onPress}
-    >
-      <View style={styles.rankColumn}>
-        <RankDisplay 
-          rank={item.rank}
-          theme={theme}
-        />
-      </View>
-      <View style={styles.songColumn}>
-        <Image 
-          source={{ uri: item.cover }} 
-          style={styles.listCoverImage}
-          resizeMode="cover"
-        />
-        <View style={styles.songDetails}>
-          <Text style={[styles.listSongTitle, { color: theme.text }]} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={[styles.listSongAuthor, { color: theme.textSecondary }]} numberOfLines={1}>
-            {item.author}
-          </Text>
+  const SongListItem = ({ item, onPress }) => {
+    const isSaved = savedSongs.has(item.id);
+    
+    return (
+      <TouchableOpacity 
+        style={[styles.songListItem, { backgroundColor: theme.cardBackground }]}
+        onPress={onPress}
+      >
+        <View style={styles.rankColumn}>
+          <RankDisplay 
+            rank={item.rank}
+            theme={theme}
+          />
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.songColumn}>
+          <Image 
+            source={{ uri: item.cover }} 
+            style={styles.listCoverImage}
+            resizeMode="cover"
+          />
+          <View style={styles.songDetails}>
+            <Text style={[styles.listSongTitle, { color: theme.text }]} numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text style={[styles.listSongAuthor, { color: theme.textSecondary }]} numberOfLines={1}>
+              {item.author}
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity 
+          style={styles.saveButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleSaveSong(item);
+          }}
+        >
+          <Ionicons 
+            name={isSaved ? "heart" : "heart-outline"}
+            size={20} 
+            color={isSaved ? "#FF4B4B" : theme.textSecondary}
+          />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
 
   const LockedSongListItem = ({ item, onPress }) => {
     const truncateText = (text, length) => {
@@ -524,6 +581,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
+    paddingRight: 12,
   },
   rankColumn: {
     width: 50,
@@ -535,6 +593,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 16,
+    marginRight: 8,
   },
   listCoverImage: {
     width: 56,
@@ -622,4 +681,33 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
   },
+  saveButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  songContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    position: 'relative',
+  },
+  songCover: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  songInfo: {
+    flex: 1,
+    marginRight: 40,
+  },
+  songTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  songAuthor: {
+    fontSize: 14,
+    opacity: 0.8,
+  }
 }); 

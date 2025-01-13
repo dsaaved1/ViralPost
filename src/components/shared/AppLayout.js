@@ -1,24 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { CountryDropdown } from './CountryDropdown';
 import { useTheme } from '../../context/ThemeContext';
 import { IndustryDropdown } from './IndustryDropdown';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { SortDropdown } from './SortDropdown';
 
 export const AppLayout = ({ 
-  children, 
-  selectedCountry, 
+  children,
+  showFilters = true,
+  type,
+  selectedCountry,
   onSelectCountry,
   selectedIndustry,
   onSelectIndustry,
   extraFilters,
   rightControl,
   onPremiumPress,
-  type,
   isIndustryMode,
   showTitle = false,
-  showFilters = true
 }) => {
   const { theme } = useTheme();
 
@@ -47,24 +48,26 @@ export const AppLayout = ({
             />
           </View>
           <View style={styles.filterSpacing} />
-          <View style={[styles.filterBox, isIndustryMode && styles.activeFilter]}>
-            <Text style={[styles.filterTitle, { 
-              color: theme.textSecondary,
-              opacity: !isIndustryMode ? 0.5 : 1
-            }]}>
-              Industry
-            </Text>
-            <IndustryDropdown
-              selectedIndustry={selectedIndustry}
-              onSelect={onSelectIndustry}
-              disabled={!isIndustryMode}
-              containerStyle={[
-                styles.dropdown, 
-                { backgroundColor: theme.surface },
-                !isIndustryMode && styles.disabledDropdown
-              ]}
-            />
-          </View>
+          {selectedCountry === 'US' && (  // Only show industry filter for US
+            <View style={[styles.filterBox, isIndustryMode && styles.activeFilter]}>
+              <Text style={[styles.filterTitle, { 
+                color: theme.textSecondary,
+                opacity:  isIndustryMode ? 1 : 0.5
+              }]}>
+                Industry
+              </Text>
+              <IndustryDropdown
+                selectedIndustry={selectedIndustry}
+                onSelect={onSelectIndustry}
+                disabled={!isIndustryMode}
+                containerStyle={[
+                  styles.dropdown, 
+                  { backgroundColor: theme.surface },
+                  !isIndustryMode && styles.disabledDropdown
+                ]}
+              />
+            </View>
+          )}
         </>
       );
     }
@@ -98,39 +101,6 @@ export const AppLayout = ({
     );
   };
 
-  const showInfoToast = () => {
-    const message = "Data shows engagement from the last 7 days. List updated every 24 hours.";
-
-    Toast.show({
-      type: 'info',
-      text1: message,
-      position: 'top',
-      visibilityTime: 4000,
-      topOffset: 40,
-      props: {
-        style: {
-          width: '90%',
-          backgroundColor: theme.cardBackground,
-          borderRadius: 8,
-          padding: 12,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        },
-        textStyle: {
-          fontSize: 13,
-          color: theme.textSecondary,
-          textAlign: 'left',
-        }
-      }
-    });
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {showTitle && (
@@ -146,7 +116,7 @@ export const AppLayout = ({
               {renderFilters()}
             </View>
             <View style={styles.rightControls}>
-              {rightControl}
+              {selectedCountry === 'US' && rightControl}
             </View>
           </View>
         </View>

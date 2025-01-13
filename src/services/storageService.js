@@ -153,5 +153,39 @@ export const storageService = {
       console.error('Error removing hashtag:', error);
       throw error;
     }
+  },
+
+  async saveSong(song) {
+    try {
+      const savedItems = await this.getSavedItems();
+      const newSong = {
+        id: song.id,
+        type: 'song',
+        name: song.title,
+        author: song.author,
+        cover: song.cover,
+        createdAt: new Date().toISOString()
+      };
+      
+      savedItems.unscheduled.push(newSong);
+      await this.saveSavedItems(savedItems);
+      return newSong;
+    } catch (error) {
+      console.error('Error saving song:', error);
+      throw error;
+    }
+  },
+
+  async removeSong(songId) {
+    try {
+      const savedItems = await this.getSavedItems();
+      savedItems.unscheduled = savedItems.unscheduled.filter(
+        item => !(item.type === 'song' && item.id === songId)
+      );
+      await this.saveSavedItems(savedItems);
+    } catch (error) {
+      console.error('Error removing song:', error);
+      throw error;
+    }
   }
 }; 

@@ -11,9 +11,9 @@ export const FooterMessage = ({ isIndustryView = false, type = 'hashtags' }) => 
     }
     switch (type) {
       case 'hashtags':
-        return "Unlock 50+ trending hashtags with our premium subscription!";
+        return "Unlock 100+ trending hashtags with our premium subscription!";
       case 'songs':
-        return "Unlock 50+ trending songs with our premium subscription!";
+        return "Unlock 100+ trending songs with our premium subscription!";
       case 'videos':
         return "Unlock 50+ trending videos with our premium subscription!";
       default:

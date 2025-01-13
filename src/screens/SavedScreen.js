@@ -14,6 +14,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
+  Image,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -558,6 +559,36 @@ export const SavedScreen = () => {
     }, [])
   );
 
+  const renderItem = ({ item }) => {
+    switch (item.type) {
+      case 'hashtag':
+        return <SavedItem item={item} onEdit={handleEdit} onDelete={handleDeleteItem} onSchedule={handleSchedulePress} />;
+      case 'song':
+        return (
+          <View style={[styles.savedItem, { backgroundColor: theme.cardBackground }]}>
+            <View style={styles.itemContent}>
+              <Image 
+                source={{ uri: item.cover }} 
+                style={styles.songCover}
+                defaultSource={require('../assets/images/default-cover.jpeg')}
+              />
+              <View style={styles.itemInfo}>
+                <Text style={[styles.itemTitle, { color: theme.text }]}>
+                  {item.name}
+                </Text>
+                <Text style={[styles.itemSubtitle, { color: theme.textSecondary }]}>
+                  {item.author}
+                </Text>
+              </View>
+            </View>
+            {renderItemActions(item)}
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -848,4 +879,28 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     padding: 8,
   },
+  songCover: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  itemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  itemInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  itemSubtitle: {
+    fontSize: 14,
+    opacity: 0.8,
+  }
 }); 

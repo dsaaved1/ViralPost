@@ -28,26 +28,41 @@ const API_ENDPOINTS = {
   }
 };
 
-const INDUSTRY_ENDPOINT = 'https://gist.githubusercontent.com/diegoas2/e7e1c3cc75018c30e2276dffc7213462/raw/bbedf8051e17648ba6f901585430363843a04a06/entertainment-hashtags.json';
+const INDUSTRY_ENDPOINTS = {
+  apparel: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/apparel.json',
+  beauty :'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/beauty.json',
+  education: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/education.json',
+  entertainment: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/entertainment.json',
+  financial: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/financial.json',
+  food: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/food.json',
+  games: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/games.json',
+  sports: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/sports.json',
+  tech: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/tech.json',
+  travel: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/travel.json',
+  vehicle: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/vehicle.json'
+};
 
 export const api = {
-  async getTopHashtags(country = 'US', isIndustryMode = false) {
+  async getTopHashtags(country = 'US', isIndustryMode = false, industry = 'entertainment') {
     try {
       if (isIndustryMode) {
-        const response = await axios.get(INDUSTRY_ENDPOINT);
+        const endpoint = INDUSTRY_ENDPOINTS[industry] || INDUSTRY_ENDPOINTS.entertainment;
+        const response = await axios.get(endpoint);
         
         if (!Array.isArray(response.data)) {
           return [];
         }
 
-        return response.data.map(item => ({
-          id: item.hashtag_id,
-          name: item.hashtag_name,
-          posts: item.publish_cnt,
-          rank: item.rank,
-          rankDiff: item.rank_diff || 0,
-          rankDiffType: item.rank_diff_type
-        }));
+        return response.data
+          .filter(item => item.hashtag_name !== '1') // Filter out invalid entries
+          .map(item => ({
+            id: item.hashtag_id || String(Math.random()),
+            name: item.hashtag_name,
+            posts: item.publish_cnt,
+            rank: item.rank,
+            rankDiff: item.rank_diff || 0,
+            rankDiffType: item.rank_diff_type
+          }));
       }
 
       const endpoint = API_ENDPOINTS.hashtags[country] || API_ENDPOINTS.hashtags.US;
