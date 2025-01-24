@@ -14,6 +14,14 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { notificationService } from './src/services/notificationService';
+import { WelcomeScreen } from './src/screens/onboarding/WelcomeScreen';
+import { OnboardingScreen } from './src/screens/onboarding/OnboardingScreen';
+
+// Import onboarding view components
+import { BeforeAfterView } from './src/components/onboarding/BeforeAfterView';
+import { StatsView } from './src/components/onboarding/StatsView';
+import { TrendingsDemoView } from './src/components/onboarding/TrendingsDemoView';
+import { SchedulingDemoView } from './src/components/onboarding/SchedulingDemoView';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -147,6 +155,11 @@ const AppNavigator = () => {
         }}
       >
         <Stack.Screen 
+          name="Welcome" 
+          component={WelcomeScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
           name="MainTabs" 
           component={TabNavigator}
           options={{ headerShown: false }}
@@ -176,6 +189,11 @@ const AppNavigator = () => {
             headerBackTitle: 'Back',
             headerRight: renderInfoButton
           }}
+        />
+        <Stack.Screen 
+          name="Onboarding" 
+          component={OnboardingScreen}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
       <InfoModal 

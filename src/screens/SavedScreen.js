@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   Alert,
   Image,
+  Linking,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -123,13 +124,26 @@ const SavedItem = ({ item, onEdit, onDelete, onSchedule }) => {
         (buttonIndex) => {
           if (buttonIndex === 1) onEdit(item);
           if (buttonIndex === 2) onSchedule(item);
-          if (buttonIndex === 3) onDelete(item.id);
+          if (buttonIndex === 3) onDelete(item.id, !!item.scheduledFor);
         }
       );
     }
   };
   
   const scheduleInfo = item.scheduledFor ? formatScheduleDate(item.scheduledFor) : null;
+  
+  const handleItemPress = () => {
+    let url;
+    if (item.type === 'hashtag') {
+      url = `https://www.tiktok.com/tag/${item.name}`;
+    } else if (item.type === 'song') {
+      url = `https://www.tiktok.com/music/${encodeURIComponent(item.name)}`;
+    }
+    
+    if (url) {
+      Linking.openURL(url);
+    }
+  };
   
   return (
     <View style={[styles.savedItem, { backgroundColor: theme.cardBackground }]}>
@@ -142,9 +156,11 @@ const SavedItem = ({ item, onEdit, onDelete, onSchedule }) => {
           {item.type === 'hashtag' ? '#' : '♪'}
         </Text>
         <View style={styles.itemInfo}>
-          <Text style={[styles.itemName, { color: theme.text }]}>
-            {item.type === 'hashtag' ? `#${item.name}` : item.name}
-          </Text>
+          <TouchableOpacity onPress={handleItemPress}>
+            <Text style={[styles.itemName, { color: theme.text }]}>
+              {item.type === 'hashtag' ? `#${item.name}` : item.name}
+            </Text>
+          </TouchableOpacity>
           {item.type === 'song' && (
             <Text style={[styles.itemAuthor, { color: theme.textSecondary }]}>
               {item.author}
@@ -232,7 +248,7 @@ const ScheduleModal = ({ visible, onClose, onSave, item }) => {
                 onClose();
               }}
             >
-              <Text style={[styles.modalButtonText, { color: '#fff' }]}>Save</Text>
+              <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.modalButton, styles.cancelButton, { borderColor: theme.border }]}
@@ -277,87 +293,92 @@ const EditModal = ({ visible, onClose, onSave, item, isNew = false }) => {
     }, 100);
   };
 
+  const handleClose = () => {
+    onClose();
+    setName('');
+    setDescription('');
+  };
+
   return (
     <Modal
       visible={visible}
       transparent={true}
-      animationType="slide"
-      onRequestClose={() => {
-        onClose();
-        setName('');
-        setDescription('');
-      }}
+      animationType="fade"
+      onRequestClose={handleClose}
     >
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -64 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-            <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>
-                {isNew ? 'Add New Hashtag' : `Edit ${item?.type === 'hashtag' ? 'Hashtag' : 'Song'}`}
-              </Text>
-              
-              <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Name</Text>
-                <TextInput
-                  style={[styles.input, { 
+          <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
+              {isNew ? 'Add New Hashtag' : 'Edit Item'}
+            </Text>
+            
+            <View style={styles.inputContainer}>
+              <View style={styles.labelContainer}>
+                <Text style={[styles.inputLabel, { color: theme.text }]}>Name</Text>
+              </View>
+              <TextInput
+                style={[
+                  styles.input,
+                  { 
                     backgroundColor: theme.cardBackground,
                     color: theme.text,
-                    borderColor: theme.border,
-                  }]}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder={`Enter ${item?.type === 'hashtag' ? 'hashtag' : 'song'} name`}
-                  placeholderTextColor={theme.textSecondary}
-                />
-              </View>
+                    borderColor: theme.border 
+                  }
+                ]}
+                placeholder="Enter hashtag name"
+                placeholderTextColor={theme.textSecondary}
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
 
-              <View style={styles.inputContainer}>
-                <View style={styles.labelContainer}>
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Description</Text>
-                  <Text style={[styles.characterCount, { color: theme.textSecondary }]}>
-                    {description.length}/{MAX_DESCRIPTION_LENGTH}
-                  </Text>
-                </View>
-                <TextInput
-                  style={[styles.input, styles.descriptionInput, { 
+            <View style={styles.inputContainer}>
+              <View style={styles.labelContainer}>
+                <Text style={[styles.inputLabel, { color: theme.text }]}>Description</Text>
+                <Text style={[styles.characterCount, { color: theme.textSecondary }]}>
+                  {description.length}/{MAX_DESCRIPTION_LENGTH}
+                </Text>
+              </View>
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.descriptionInput,
+                  { 
                     backgroundColor: theme.cardBackground,
                     color: theme.text,
-                    borderColor: theme.border,
-                  }]}
-                  value={description}
-                  onChangeText={(text) => {
-                    if (text.length <= MAX_DESCRIPTION_LENGTH) {
-                      setDescription(text);
-                    }
-                  }}
-                  placeholder="Add a description (optional)"
-                  placeholderTextColor={theme.textSecondary}
-                  multiline
-                  numberOfLines={2}
-                />
-              </View>
+                    borderColor: theme.border 
+                  }
+                ]}
+                placeholder="Add a description (optional)"
+                placeholderTextColor={theme.textSecondary}
+                value={description}
+                onChangeText={text => {
+                  if (text.length <= MAX_DESCRIPTION_LENGTH) {
+                    setDescription(text);
+                  }
+                }}
+                multiline
+              />
+            </View>
 
-              <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={[styles.modalButton, { backgroundColor: theme.accent }]}
-                  onPress={handleSave}
-                >
-                  <Text style={[styles.modalButtonText, { color: '#fff' }]}>Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.cancelButton, { borderColor: theme.border }]}
-                  onPress={() => {
-                    onClose();
-                    setName('');
-                    setDescription('');
-                  }}
-                >
-                  <Text style={[styles.modalButtonText, { color: theme.text }]}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, { backgroundColor: theme.accent }]}
+                onPress={handleSave}
+              >
+                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton, { borderColor: theme.border }]}
+                onPress={handleClose}
+              >
+                <Text style={[styles.modalButtonText, { color: theme.text }]}>Cancel</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -475,6 +496,18 @@ export const SavedScreen = () => {
 
   const handleDeleteItem = async (itemId, isScheduled = false) => {
     try {
+      // Get the item before deleting to cancel any notifications
+      const savedItems = await storageService.getSavedItems();
+      const item = isScheduled 
+        ? savedItems.scheduled.find(i => i.id === itemId)
+        : savedItems.unscheduled.find(i => i.id === itemId);
+
+      // Cancel notification if it exists
+      if (item?.notificationId) {
+        await notificationService.cancelNotification(item.notificationId);
+      }
+
+      // Delete the item
       await storageService.deleteItem(itemId, isScheduled);
       await loadSavedItems();
     } catch (error) {
@@ -764,7 +797,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    width: '80%',
+    width: '85%',
     borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
@@ -775,7 +808,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    maxHeight: '70%',
   },
   modalTitle: {
     fontSize: 20,
