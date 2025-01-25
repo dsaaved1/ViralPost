@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppLayout } from '../components/shared/AppLayout';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { ViralPostIcon } from '../assets/svgs/ViralPost';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
@@ -25,7 +26,7 @@ export const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Ionicons name="trending-up" size={32} color={theme.accent} />
+          <ViralPostIcon width={32} height={32} fill={theme.accent} />
           <Text style={[styles.title, { color: theme.text }]}>ViralPost</Text>
         </View>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>

@@ -17,7 +17,7 @@ export const TrendingsDemoView = () => {
       
       <View style={styles.textContainer}>
         <Text style={styles.title}>
-          Daily Trusted Trends Rankings
+          Trusted Trends Rankings
         </Text>
         <Text style={styles.subtitle}>
           Find trending hashtags, songs, and viral videos. Click to view them directly on TikTok and boost your engagement.

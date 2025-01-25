@@ -16,7 +16,13 @@ export const WelcomeScreen = ({ navigation }) => {
       style={styles.container}
     >
       <LinearGradient
-        colors={['transparent', 'rgba(255, 45, 85, 0.95)']}
+        colors={[
+          'transparent',
+          'rgba(255, 45, 85, 0.3)',
+          'rgba(255, 45, 85, 0.95)',
+          '#FF2D55'
+        ]}
+        locations={[0, 0.5, 0.8, 1]}
         style={styles.gradient}
       >
         <SafeAreaView style={styles.content}>
@@ -34,7 +40,8 @@ export const WelcomeScreen = ({ navigation }) => {
             >
               <Text style={styles.buttonText}>Get Started</Text>
             </TouchableOpacity>
-
+            
+            
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -61,10 +68,10 @@ const styles = StyleSheet.create({
   textContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 45,
   },
   title: {
-    fontSize: 40,
+    fontSize: 44,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 16,
@@ -75,7 +82,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     opacity: 0.9,
     textAlign: 'center',
-    paddingHorizontal: 20,
+   // paddingHorizontal: 20,
   },
   buttonContainer: {
     width: '100%',
@@ -103,4 +110,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
+
 }); 

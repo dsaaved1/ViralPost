@@ -20,11 +20,14 @@ export const StatsView = () => {
       <Text style={styles.miniSubtitle}>
           Source: Mad Penguin (2024), based on TikTok studies
         </Text>
-        <Text style={styles.title}>
+        {/* <Text style={styles.title}>
           Boost Your Viral Potential
+        </Text> */}
+        <Text style={styles.title}>
+         Trust The Stats
         </Text>
         <Text style={styles.subtitle}>
-        Upload your videos with the latest trends and take your content creation to the next level. We’re here to help!
+        Upload your videos with the latest trends and take your content creation to the next level. We’re here to help you!
         </Text>
         
       </View>

@@ -17,11 +17,7 @@ import { notificationService } from './src/services/notificationService';
 import { WelcomeScreen } from './src/screens/onboarding/WelcomeScreen';
 import { OnboardingScreen } from './src/screens/onboarding/OnboardingScreen';
 
-// Import onboarding view components
-import { BeforeAfterView } from './src/components/onboarding/BeforeAfterView';
-import { StatsView } from './src/components/onboarding/StatsView';
-import { TrendingsDemoView } from './src/components/onboarding/TrendingsDemoView';
-import { SchedulingDemoView } from './src/components/onboarding/SchedulingDemoView';
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();

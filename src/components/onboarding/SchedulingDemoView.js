@@ -17,7 +17,7 @@ export const SchedulingDemoView = () => {
       
       <View style={styles.textContainer}>
         <Text style={styles.title}>
-          Content Scheduler
+          Smart Content Scheduler
         </Text>
         <Text style={styles.subtitle}>
           Plan your content ahead with our scheduling feature. Get notifications when it's time to post and never miss the best posting times.

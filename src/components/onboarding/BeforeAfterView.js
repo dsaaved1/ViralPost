@@ -12,7 +12,12 @@ export const BeforeAfterView = ({ showAfterImage }) => {
   const slideAnim = React.useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
-    fadeIn();
+    if (showAfterImage) {
+      fadeIn();
+    } else {
+      fadeAnim.setValue(1);
+      slideAnim.setValue(0);
+    }
   }, [showAfterImage]);
 
   const fadeIn = () => {
@@ -22,12 +27,12 @@ export const BeforeAfterView = ({ showAfterImage }) => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
+        duration: 400,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 800,
+        duration: 500,
         useNativeDriver: true,
       }),
     ]).start();
@@ -62,7 +67,8 @@ export const BeforeAfterView = ({ showAfterImage }) => {
       </View>
 
       <View style={styles.textContainer}>
-        <Text style={styles.title}>Did You Know?</Text>
+        {/* <Text style={styles.title}>Did You Know?</Text> */}
+        <Text style={styles.title}>Unlock Your Potential</Text>
         <Text style={styles.subtitle}>
         Using the right trending hashtag, song, or video idea can be the key to making your content go viral.
         </Text>

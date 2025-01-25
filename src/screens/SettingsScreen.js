@@ -316,7 +316,7 @@ export const SettingsScreen = () => {
         </View>
 
         <View style={styles.footer}>
-          <View style={styles.socialIcons}>
+          {/* <View style={styles.socialIcons}>
             <TouchableOpacity style={styles.socialIcon}>
               <Ionicons name="logo-tiktok" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
@@ -326,7 +326,7 @@ export const SettingsScreen = () => {
             <TouchableOpacity style={styles.socialIcon}>
               <Ionicons name="logo-twitter" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
-          </View>
+          </View> */}
           <Text style={[styles.version, { color: theme.textSecondary }]}>
             Version 1.0.0
           </Text>
