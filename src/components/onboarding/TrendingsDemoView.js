@@ -8,19 +8,19 @@ import {
 
 export const TrendingsDemoView = () => {
   return (
-    <View>
-      <Image
-        source={require('../../assets/images/trending-demo.jpg')}
-        style={styles.image}
-        resizeMode="cover"
-      />
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={require('../../assets/images/trending-demo.png')}
+          style={styles.image}
+          //resizeMode="contain"
+        />
+      </View>
       
       <View style={styles.textContainer}>
-        <Text style={styles.title}>
-          Trusted Trends Rankings
-        </Text>
+        <Text style={styles.title}>Trusted Trends Rankings</Text>
         <Text style={styles.subtitle}>
-          Find trending hashtags, songs, and viral videos. Click to view them directly on TikTok and boost your engagement.
+          Find trending hashtags, songs, and viral videos. Tap to view them on TikTok and stay ahead of trends.
         </Text>
       </View>
     </View>
@@ -28,15 +28,26 @@ export const TrendingsDemoView = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FAF9F6',
+  },
+  imageContainer: {
+    flex: 0.7,
+    justifyContent: 'center',
+    alignItems: 'center',
+    
+  },
   image: {
     width: '100%',
-    height: 430,
-    marginTop: 0,
+    height: '100%',
   },
   textContainer: {
-    marginTop: 24,
-    marginBottom: 24,
+    flex: 0.3,
     paddingHorizontal: 32,
+    justifyContent: 'flex-end',
+    paddingBottom: 32,
+   
   },
   title: {
     fontSize: 32,

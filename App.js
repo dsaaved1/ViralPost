@@ -103,7 +103,7 @@ const InfoModal = ({ visible, onClose, theme }) => {
           </View>
           
           <Text style={[styles.modalText, { color: theme.textSecondary }]}>
-           We aggregate data daily using powerful Tiktok data extractors and directly from TikTok Creative Center.
+           We aggregate data daily using powerful Tiktok data extractors and from TikTok Creative Center.
           </Text>
           <Text style={[styles.modalText, { color: theme.textSecondary }]}>
             Metrics (posts, views, and rank) represent usage from the last 7 days.

@@ -142,7 +142,7 @@ export const OnboardingScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF9F6',
   },
   backButton: {
     padding: 16,
@@ -156,12 +156,13 @@ const styles = StyleSheet.create({
   slide: {
     width: width,
     flex: 1,
+    backgroundColor: '#FAF9F6',
   },
   footer: {
     paddingHorizontal: 24,
     paddingBottom: 24,
     paddingTop: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF9F6',
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     backgroundColor: '#FF2D55',
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 32,
     borderRadius: 30,
   },

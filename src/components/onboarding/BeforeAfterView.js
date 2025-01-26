@@ -27,7 +27,7 @@ export const BeforeAfterView = ({ showAfterImage }) => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
@@ -39,8 +39,8 @@ export const BeforeAfterView = ({ showAfterImage }) => {
   };
 
   return (
-    <View>
-      <View style={styles.imagesContainer}>
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
         <Animated.View
           style={[
             styles.imageWrapper,
@@ -54,23 +54,22 @@ export const BeforeAfterView = ({ showAfterImage }) => {
             <Image
               source={require('../../assets/images/before-viral.png')}
               style={styles.image}
-              resizeMode="contain"
+              //resizeMode="contain"
             />
           ) : (
             <Image
               source={require('../../assets/images/after-viral.png')}
               style={styles.image}
-              resizeMode="contain"
+              //resizeMode="contain"
             />
           )}
         </Animated.View>
       </View>
 
       <View style={styles.textContainer}>
-        {/* <Text style={styles.title}>Did You Know?</Text> */}
-        <Text style={styles.title}>Unlock Your Potential</Text>
+        <Text style={styles.title}>Did You Know?</Text>
         <Text style={styles.subtitle}>
-        Using the right trending hashtag, song, or video idea can be the key to making your content go viral.
+          Using the right trending hashtag, song, or video idea can be the key to making your content go viral.
         </Text>
       </View>
     </View>
@@ -78,29 +77,30 @@ export const BeforeAfterView = ({ showAfterImage }) => {
 };
 
 const styles = StyleSheet.create({
-  imagesContainer: {
-    width: '100%',
-    height: 450,
-    marginTop: 0,
-    backgroundColor: '#fff',
-   
+  container: {
+    flex: 1,
+    backgroundColor: '#FAF9F6',
+  },
+  imageContainer: {
+    flex: 0.7,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   imageWrapper: {
-    width: '100%',
+    width: '120%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft:10
   },
   image: {
     width: '100%',
     height: '100%',
-    borderRadius: 0,
   },
   textContainer: {
-    marginTop: 24,
-    marginBottom: 24,
+    flex: 0.3,
     paddingHorizontal: 32,
+    justifyContent: 'flex-end',
+    paddingBottom: 32,
   },
   title: {
     fontSize: 32,

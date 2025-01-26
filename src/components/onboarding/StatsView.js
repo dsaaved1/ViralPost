@@ -8,44 +8,47 @@ import {
 
 export const StatsView = () => {
   return (
-    <View>
-    
-      <Image
-        source={require('../../assets/images/stats-demo.png')}
-        style={styles.image}
-        resizeMode="cover"
-      />
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={require('../../assets/images/stats-demo.png')}
+          style={styles.image}
+          //resizeMode="contain"
+        />
+      </View>
       
       <View style={styles.textContainer}>
-      <Text style={styles.miniSubtitle}>
-          Source: Mad Penguin (2024), based on TikTok studies
-        </Text>
+        <Text style={styles.title}>Elevate Your Reach</Text>
         {/* <Text style={styles.title}>
-          Boost Your Viral Potential
+         Stats That Matter
         </Text> */}
-        <Text style={styles.title}>
-         Trust The Stats
-        </Text>
         <Text style={styles.subtitle}>
-        Upload your videos with the latest trends and take your content creation to the next level. We’re here to help you!
+          Upload your videos with the latest trends and take your content creation to the next level. We're here to help you!
         </Text>
-        
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FAF9F6',
+  },
+  imageContainer: {
+    flex: 0.7,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   image: {
     width: '100%',
-    height: 350,
-    marginTop: 20,
-    paddingHorizontal:30
+    height: '110%',
   },
   textContainer: {
-    //marginTop: 14,
-    marginBottom: 24,
+    flex: 0.3,
     paddingHorizontal: 32,
+    justifyContent: 'flex-end',
+    paddingBottom: 32,
   },
   title: {
     fontSize: 32,
@@ -59,12 +62,5 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     lineHeight: 24,
-  },
-  miniSubtitle: {
-    fontSize: 6,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 34,
   },
 }); 
