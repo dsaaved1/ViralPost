@@ -26,6 +26,9 @@ import { storageService } from '../services/storageService';
 import { useFocusEffect } from '@react-navigation/native';
 import { notificationService } from '../services/notificationService';
 
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import Purchases from 'react-native-purchases';
+
 const formatScheduleDate = (dateString) => {
   const date = new Date(dateString);
   const today = new Date();
@@ -57,7 +60,7 @@ const formatScheduleDate = (dateString) => {
   return { date: `${dayName}, ${dateNum}`, time: timeString };
 };
 
-const SavedItem = ({ item, onEdit, onDelete, onSchedule }) => {
+const SavedItem = ({ item, onEdit, onDelete, onSchedule, isPro, proAction }) => {
   const { theme } = useTheme();
   const [notificationEnabled, setNotificationEnabled] = useState(
     item.notificationId ? true : false
@@ -117,13 +120,25 @@ const SavedItem = ({ item, onEdit, onDelete, onSchedule }) => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Cancel', 'Edit', 'Schedule', 'Delete'],
+          options: [
+            'Cancel',
+            'Edit',
+            `Schedule ${!isPro ? '🔒' : ''}`,
+            'Delete'
+          ],
           destructiveButtonIndex: 3,
           cancelButtonIndex: 0,
         },
         (buttonIndex) => {
           if (buttonIndex === 1) onEdit(item);
-          if (buttonIndex === 2) onSchedule(item);
+          if (buttonIndex === 2) {
+            if (isPro) {
+              onSchedule(item);
+            } else {
+              console.log("here in pro")
+              proAction();
+            }
+          }
           if (buttonIndex === 3) onDelete(item.id, !!item.scheduledFor);
         }
       );
@@ -320,65 +335,66 @@ const EditModal = ({ visible, onClose, onSave, item, isNew = false }) => {
             <View style={styles.inputContainer}>
               <View style={styles.labelContainer}>
                 <Text style={[styles.inputLabel, { color: theme.text }]}>Name</Text>
+                </View>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { 
+                      backgroundColor: theme.cardBackground,
+                      color: theme.text,
+                      borderColor: theme.border 
+                    }
+                  ]}
+                  placeholder="Enter hashtag name"
+                  placeholderTextColor={theme.textSecondary}
+                  value={name}
+                  onChangeText={setName}
+                />
               </View>
-              <TextInput
-                style={[
-                  styles.input,
-                  { 
-                    backgroundColor: theme.cardBackground,
-                    color: theme.text,
-                    borderColor: theme.border 
-                  }
-                ]}
-                placeholder="Enter hashtag name"
-                placeholderTextColor={theme.textSecondary}
-                value={name}
-                onChangeText={setName}
-              />
-            </View>
 
-            <View style={styles.inputContainer}>
-              <View style={styles.labelContainer}>
-                <Text style={[styles.inputLabel, { color: theme.text }]}>Description</Text>
-                <Text style={[styles.characterCount, { color: theme.textSecondary }]}>
-                  {description.length}/{MAX_DESCRIPTION_LENGTH}
-                </Text>
+              <View style={styles.inputContainer}>
+                <View style={styles.labelContainer}>
+                  <Text style={[styles.inputLabel, { color: theme.text }]}>Description</Text>
+                  <Text style={[styles.characterCount, { color: theme.textSecondary }]}>
+                    {description.length}/{MAX_DESCRIPTION_LENGTH}
+                  </Text>
+                </View>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.descriptionInput,
+                    { 
+                      backgroundColor: theme.cardBackground,
+                      color: theme.text,
+                      borderColor: theme.border 
+                    }
+                  ]}
+                  placeholder="Add a description (optional)"
+                  placeholderTextColor={theme.textSecondary}
+                  value={description}
+                  onChangeText={text => {
+                    if (text.length <= MAX_DESCRIPTION_LENGTH) {
+                      setDescription(text);
+                    }
+                  }}
+                  multiline
+                />
               </View>
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.descriptionInput,
-                  { 
-                    backgroundColor: theme.cardBackground,
-                    color: theme.text,
-                    borderColor: theme.border 
-                  }
-                ]}
-                placeholder="Add a description (optional)"
-                placeholderTextColor={theme.textSecondary}
-                value={description}
-                onChangeText={text => {
-                  if (text.length <= MAX_DESCRIPTION_LENGTH) {
-                    setDescription(text);
-                  }
-                }}
-                multiline
-              />
-            </View>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, { backgroundColor: theme.accent }]}
-                onPress={handleSave}
-              >
-                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton, { borderColor: theme.border }]}
-                onPress={handleClose}
-              >
-                <Text style={[styles.modalButtonText, { color: theme.text }]}>Cancel</Text>
-              </TouchableOpacity>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: theme.accent }]}
+                  onPress={handleSave}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton, { borderColor: theme.border }]}
+                  onPress={handleClose}
+                >
+                  <Text style={[styles.modalButtonText, { color: theme.text }]}>Cancel</Text>
+                </TouchableOpacity>
+       
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -452,7 +468,6 @@ export const SavedScreen = () => {
   const { theme } = useTheme();
   const [unscheduledExpanded, setUnscheduledExpanded] = useState(true);
   const [scheduledExpanded, setScheduledExpanded] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [unscheduledItems, setUnscheduledItems] = useState([]);
@@ -460,6 +475,7 @@ export const SavedScreen = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [globalNotificationsEnabled, setGlobalNotificationsEnabled] = useState(true);
+  const [isPro, setIsPro] = useState(false);
   
   useEffect(() => {
     loadSavedItems();
@@ -469,6 +485,52 @@ export const SavedScreen = () => {
     checkNotificationStatus();
   }, []);
 
+  useEffect(() => {
+    checkSubscriptionStatus();
+  }, []);
+
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      // Check if user has 'pro' entitlement
+      const isPremium = customerInfo?.entitlements?.active?.['pro']?.isActive ?? false;
+      setIsPro(isPremium);
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      setIsPro(false);
+    }
+  };
+
+  const proAction = async () => {
+    try {
+      const paywallResult = await RevenueCatUI.presentPaywallIfNeeded({
+        requiredEntitlementIdentifier: 'pro',
+      });
+      
+      switch (paywallResult) {
+        case PAYWALL_RESULT.NOT_PRESENTED:
+          console.log("Already subscribed");
+          setIsPro(true)
+          break;
+        case PAYWALL_RESULT.PURCHASED:
+        case PAYWALL_RESULT.RESTORED:
+          console.log("Just purchased or restored");
+          setIsPro(true)
+          break;
+        case PAYWALL_RESULT.ERROR:
+        case PAYWALL_RESULT.CANCELLED:
+          console.log("Purchase cancelled or error")
+          break;
+        default:
+          console.log("Default case");
+          break;
+      }
+    } catch (error) {
+      console.error("Error in proAction:", error);
+    }
+  };
+  
   const checkNotificationStatus = async () => {
     const status = await notificationService.getNotificationStatus();
     setGlobalNotificationsEnabled(status);
@@ -592,35 +654,6 @@ export const SavedScreen = () => {
     }, [])
   );
 
-  const renderItem = ({ item }) => {
-    switch (item.type) {
-      case 'hashtag':
-        return <SavedItem item={item} onEdit={handleEdit} onDelete={handleDeleteItem} onSchedule={handleSchedulePress} />;
-      case 'song':
-        return (
-          <View style={[styles.savedItem, { backgroundColor: theme.cardBackground }]}>
-            <View style={styles.itemContent}>
-              <Image 
-                source={{ uri: item.cover }} 
-                style={styles.songCover}
-                defaultSource={require('../assets/images/default-cover.jpeg')}
-              />
-              <View style={styles.itemInfo}>
-                <Text style={[styles.itemTitle, { color: theme.text }]}>
-                  {item.name}
-                </Text>
-                <Text style={[styles.itemSubtitle, { color: theme.textSecondary }]}>
-                  {item.author}
-                </Text>
-              </View>
-            </View>
-            {renderItemActions(item)}
-          </View>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -637,7 +670,15 @@ export const SavedScreen = () => {
             isEmpty={unscheduledItems.length === 0}
           >
             {unscheduledItems.map(item => (
-              <SavedItem key={item.id} item={item} onEdit={handleEdit} onDelete={handleDeleteItem} onSchedule={handleSchedulePress} />
+              <SavedItem 
+                key={item.id} 
+                item={item} 
+                onEdit={handleEdit} 
+                onDelete={handleDeleteItem} 
+                onSchedule={handleSchedulePress} 
+                isPro={isPro}
+                proAction={proAction}
+              />
             ))}
           </CollapsibleSection>
 
@@ -648,7 +689,7 @@ export const SavedScreen = () => {
             isEmpty={scheduledItems.length === 0}
           >
             {scheduledItems.map(item => (
-              <SavedItem key={item.id} item={item} onEdit={handleEdit} onDelete={handleDeleteItem} onSchedule={handleSchedulePress} />
+              <SavedItem key={item.id} item={item} onEdit={handleEdit} onDelete={handleDeleteItem} onSchedule={handleSchedulePress} isPro={isPro} />
             ))}
           </CollapsibleSection>
         </ScrollView>
@@ -725,7 +766,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    marginHorizontal: 16,
+    marginHorizontal: 12,
     marginVertical: 4,
     borderRadius: 16,
     backgroundColor: '#fff',
@@ -739,7 +780,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
-    minHeight: 70,
+    minHeight: 65,
   },
   itemGradient: {
     ...StyleSheet.absoluteFillObject,
@@ -758,6 +799,7 @@ const styles = StyleSheet.create({
   itemInfo: {
     flex: 1,
     marginLeft: 12,
+    marginRight: 12,
   },
   itemName: {
     fontSize: 14,
@@ -921,10 +963,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  itemInfo: {
-    flex: 1,
-    marginRight: 8,
   },
   itemTitle: {
     fontSize: 16,

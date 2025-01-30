@@ -26,33 +26,33 @@ export const AppLayout = ({
   const renderFilters = () => {
     if (type === 'hashtags') {
       return (
-        <>
-          <View style={[styles.filterBox, !isIndustryMode && styles.activeFilter]}>
-            <Text style={[styles.filterTitle, { 
-              color: theme.textSecondary,
-              opacity: isIndustryMode ? 0.5 : 1
-            }]}>
-              Country
-            </Text>
-            <CountryDropdown
-              selectedCountry={selectedCountry}
-              onSelect={onSelectCountry}
-              onPremiumPress={onPremiumPress}
-              type={type}
-              disabled={isIndustryMode}
-              containerStyle={[
-                styles.dropdown, 
-                { backgroundColor: theme.surface },
-                isIndustryMode && styles.disabledDropdown
-              ]}
-            />
-          </View>
-          <View style={styles.filterSpacing} />
-          {selectedCountry === 'US' && (  // Only show industry filter for US
+        <View style={styles.filtersRow}>
+          <View style={styles.leftControls}>
+            <View style={[styles.filterBox, !isIndustryMode && styles.activeFilter]}>
+              <Text style={[styles.filterTitle, { 
+                color: theme.textSecondary,
+                opacity: isIndustryMode ? 0.5 : 1
+              }]}>
+                Country
+              </Text>
+              <CountryDropdown
+                selectedCountry={selectedCountry}
+                onSelect={onSelectCountry}
+                onPremiumPress={onPremiumPress}
+                type={type}
+                disabled={isIndustryMode}
+                containerStyle={[
+                  styles.dropdown, 
+                  { backgroundColor: theme.surface },
+                  isIndustryMode && styles.disabledDropdown
+                ]}
+              />
+            </View>
+            <View style={styles.filterSpacing} />
             <View style={[styles.filterBox, isIndustryMode && styles.activeFilter]}>
               <Text style={[styles.filterTitle, { 
                 color: theme.textSecondary,
-                opacity:  isIndustryMode ? 1 : 0.5
+                opacity: isIndustryMode ? 1 : 0.5
               }]}>
                 Industry
               </Text>
@@ -67,69 +67,79 @@ export const AppLayout = ({
                 ]}
               />
             </View>
+          </View>
+          {rightControl && (
+            <View style={styles.rightControls}>
+              {rightControl}
+            </View>
           )}
-        </>
+        </View>
       );
     }
 
     return (
-      <>
-        <View style={styles.filterBox}>
-          <Text style={[styles.filterTitle, { color: theme.textSecondary }]}>
-            Country
-          </Text>
-          <CountryDropdown
-            selectedCountry={selectedCountry}
-            onSelect={onSelectCountry}
-            onPremiumPress={onPremiumPress}
-            type={type}
-            containerStyle={[styles.dropdown, { backgroundColor: theme.surface }]}
-          />
+      <View style={styles.filtersRow}>
+        <View style={styles.leftControls}>
+          <View style={styles.filterBox}>
+            <Text style={[styles.filterTitle, { color: theme.textSecondary }]}>
+              Country
+            </Text>
+            <CountryDropdown
+              selectedCountry={selectedCountry}
+              onSelect={onSelectCountry}
+              onPremiumPress={onPremiumPress}
+              type={type}
+              containerStyle={[styles.dropdown, { backgroundColor: theme.surface }]}
+            />
+          </View>
+          {type === 'videos' && extraFilters && (
+            <>
+              <View style={styles.filterSpacing} />
+              <View style={styles.filterBox}>
+                <Text style={[styles.filterTitle, { color: theme.textSecondary }]}>
+                  Sort by
+                </Text>
+                {extraFilters}
+              </View>
+            </>
+          )}
         </View>
-        {type === 'videos' && extraFilters && (
-          <>
-            <View style={styles.filterSpacing} />
-            <View style={styles.filterBox}>
-              <Text style={[styles.filterTitle, { color: theme.textSecondary }]}>
-                Sort by
-              </Text>
-              {extraFilters}
-            </View>
-          </>
+        {rightControl && (
+          <View style={styles.rightControls}>
+            {rightControl}
+          </View>
         )}
-      </>
+      </View>
     );
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {showTitle && (
-        <View style={[styles.header, { backgroundColor: theme.background }]}>
-          <Text style={[styles.appTitle, { color: theme.accent }]}>Trendify</Text>
-        </View>
-      )}
-
-      {showFilters && (
-        <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
-          <View style={styles.filtersRow}>
-            <View style={styles.leftControls}>
-              {renderFilters()}
-            </View>
-            <View style={styles.rightControls}>
-              {selectedCountry === 'US' && rightControl}
-            </View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {showTitle && (
+          <View style={[styles.header, { backgroundColor: theme.background }]}>
+            <Text style={[styles.appTitle, { color: theme.accent }]}>Trendify</Text>
           </View>
-        </View>
-      )}
+        )}
 
-      <View style={[styles.content, { backgroundColor: theme.background }]}>
-        {children}
+        {showFilters && (
+          <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
+            {renderFilters()}
+          </View>
+        )}
+
+        <View style={[styles.content, { backgroundColor: theme.background }]}>
+          {children}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -168,14 +178,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  rightControl: {
-    height: 32,
-  },
-  filterSpacing: {
-    width: 8,
+  rightControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
   },
   content: {
     flex: 1,
+    paddingBottom: 20,
   },
   dropdown: {
     width: '100%',
@@ -201,6 +211,9 @@ const styles = StyleSheet.create({
   disabledDropdown: {
     opacity: 0.5,
   },
+  filterSpacing: {
+    width: 8,
+  },
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -208,10 +221,5 @@ const styles = StyleSheet.create({
   },
   infoButton: {
     padding: 4,
-  },
-  rightControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
   },
 }); 

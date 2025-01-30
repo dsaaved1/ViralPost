@@ -4,93 +4,152 @@ import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { notificationService } from '../services/notificationService';
 
-const SECTIONS = [
-  {
-    title: 'Preferences',
-    items: [
-      {
-        id: 'darkMode',
-        title: 'Dark Mode',
-        icon: 'moon',
-        type: 'toggle'
-      },
-      {
-        id: 'notifications',
-        title: 'Notifications',
-        icon: 'notifications',
-        type: 'link'
-      }
-    ]
-  },
-  // {
-  //   title: 'Notifications',
-  //   items: [
-  //     {
-  //       id: 'trendAlerts',
-  //       title: 'Trend Alerts',
-  //       icon: 'notifications',
-  //       type: 'toggle'
-  //     }
-  //   ]
-  // },
-  {
-    title: 'Connect & Premium',
-    items: [
-      {
-        id: 'subscription',
-        title: 'Subscription',
-        icon: 'pricetag',
-        type: 'link'
-      },
-      // {
-      //   id: 'freeMonth',
-      //   title: 'Earn a Free Month',
-      //   icon: 'gift',
-      //   type: 'link'
-      // },
-      {
-        id: 'shareApp',
-        title: 'Share App',
-        icon: 'share',
-        type: 'button'
-      },
-      {
-        id: 'rateUs',
-        title: 'Rate Us',
-        icon: 'heart',
-        type: 'link'
-      }
-    ]
-  },
-  {
-    title: 'Contact & Info',
-    items: [
-      {
-        id: 'contact',
-        title: 'Contact Us',
-        icon: 'mail',
-        type: 'link'
-      },
-      
-      // {
-      //   id: 'terms',
-      //   title: 'Terms of Use',
-      //   icon: 'document-text',
-      //   type: 'link'
-      // },
-      // {
-      //   id: 'privacy',
-      //   title: 'Privacy Policy',
-      //   icon: 'shield-checkmark',
-      //   type: 'link'
-      // }
-    ]
-  }
-];
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import Purchases from 'react-native-purchases';
 
 export const SettingsScreen = () => {
   const { theme, toggleTheme, isDark } = useTheme();
   const [notifications, setNotifications] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+
+
+  // Check subscription status on mount
+  useEffect(() => {
+    checkSubscriptionStatus();
+  }, []);
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      // Check if user has 'pro' entitlement
+      const isPremium = customerInfo?.entitlements?.active?.['pro']?.isActive ?? false;
+      setIsPro(isPremium);
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      setIsPro(false);
+    }
+  };
+
+  const proAction = async () => {
+    try {
+     if (isPro){
+      Alert.alert('User has access.')
+     } else {
+      try {
+        const paywallResult = await RevenueCatUI.presentPaywallIfNeeded({
+          requiredEntitlementIdentifier: 'pro',
+        });
+        
+        switch (paywallResult) {
+          case PAYWALL_RESULT.NOT_PRESENTED:
+            console.log("Already subscribed");
+            setIsPro(true)
+            break;
+          case PAYWALL_RESULT.PURCHASED:
+          case PAYWALL_RESULT.RESTORED:
+            console.log("Just purchased or restored");
+            setIsPro(true)
+            break;
+          case PAYWALL_RESULT.ERROR:
+          case PAYWALL_RESULT.CANCELLED:
+            console.log("Purchase cancelled or error")
+            break;
+          default:
+            console.log("Default case");
+            break;
+        }
+      } catch (error) {
+        console.error("Error inside proAction:", error);
+      }
+     }
+    } catch (error) {
+      console.error("Error in proAction:", error);
+    }
+  };
+
+  const SECTIONS = [
+    {
+      title: 'Preferences',
+      items: [
+        {
+          id: 'darkMode',
+          title: 'Dark Mode',
+          icon: 'moon',
+          type: 'toggle'
+        },
+        {
+          id: 'notifications',
+          title: 'Notifications',
+          icon: 'notifications',
+          type: 'link'
+        }
+      ]
+    },
+    // {
+    //   title: 'Notifications',
+    //   items: [
+    //     {
+    //       id: 'trendAlerts',
+    //       title: 'Trend Alerts',
+    //       icon: 'notifications',
+    //       type: 'toggle'
+    //     }
+    //   ]
+    // },
+    {
+      title: 'Connect & Premium',
+      items: [
+        {
+          id: 'subscription',
+          title: 'Subscription',
+          icon: 'pricetag',
+          type: 'link',
+        },
+        // {
+        //   id: 'freeMonth',
+        //   title: 'Earn a Free Month',
+        //   icon: 'gift',
+        //   type: 'link'
+        // },
+        {
+          id: 'shareApp',
+          title: 'Share App',
+          icon: 'share',
+          type: 'button'
+        },
+        {
+          id: 'rateUs',
+          title: 'Rate Us',
+          icon: 'heart',
+          type: 'link'
+        }
+      ]
+    },
+    {
+      title: 'Contact & Info',
+      items: [
+        {
+          id: 'contact',
+          title: 'Contact Us',
+          icon: 'mail',
+          type: 'link'
+        },
+        
+        // {
+        //   id: 'terms',
+        //   title: 'Terms of Use',
+        //   icon: 'document-text',
+        //   type: 'link'
+        // },
+        // {
+        //   id: 'privacy',
+        //   title: 'Privacy Policy',
+        //   icon: 'shield-checkmark',
+        //   type: 'link'
+        // }
+      ]
+    }
+  ];
 
   // Load notification status on mount
   useEffect(() => {
@@ -124,8 +183,8 @@ export const SettingsScreen = () => {
   const handlePress = async (item) => {
     switch (item.id) {
       case 'contact':
-        const email = 'support@yourapp.com'; // Replace with your support email
-        const subject = 'Support Request';
+        const email = 'hello@viralpostapp.com'; // Your support email
+        const subject = 'ViralPost Support';
         const mailtoUrl = Platform.select({
           ios: `mailto:${email}?subject=${encodeURIComponent(subject)}`,
           android: `mailto:${email}?subject=${encodeURIComponent(subject)}`
@@ -145,39 +204,28 @@ export const SettingsScreen = () => {
         } catch (error) {
           console.error('Error opening email:', error);
         }
-        break;
+      break;
 
       case 'subscription':
-        Alert.alert(
-          'Premium Subscription',
-          'Unlock all premium features:\n\n' +
-          '• Unlimited saved items\n' +
-          '• Access to all trending content\n' +
-          '• Advanced analytics\n' +
-          '• Ad-free experience\n\n' +
-          '$4.99/month or $49.99/year',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Subscribe',
-              onPress: () => {
-                // Implement your subscription logic here
-                console.log('Subscribe pressed');
-              }
-            }
-          ]
-        );
-        break;
+        try {
+          proAction()
+        } catch (error) {
+          console.error('Error subscribing:', error);
+        }
+      break;
 
       case 'shareApp':
         try {
+          const appStoreId = 'id6741085606'; // Your current App Store ID
+          const androidPackageName = 'com.diegoas2.viralpost'; // Android package name
+
           const result = await Share.share({
             message: Platform.select({
-              ios: 'Check out this awesome app for content creators!',
-              android: 'Check out this awesome app for content creators! https://play.google.com/store/apps/details?id=your.app.id'
+              ios: `Check out this awesome app for content creators! https://apps.apple.com/app/${appStoreId}`,
+              android: `Check out this awesome app for content creators! https://play.google.com/store/apps/details?id=${androidPackageName}`
             }),
-            url: 'https://apps.apple.com/app/your-app-id', // iOS only
-            title: 'Share App'
+            url: `https://apps.apple.com/app/${appStoreId}`, // iOS only
+            title: 'Share ViralPost'
           });
 
           if (result.action === Share.sharedAction) {
@@ -195,9 +243,12 @@ export const SettingsScreen = () => {
         break;
 
       case 'rateUs':
+        const appStoreId = 'id6741085606'; // Your App Store ID from App Store Connect
+        const androidPackageName = 'com.diegoas2.viralpost'; // Your Android package name
+
         const storeUrl = Platform.select({
-          ios: 'https://apps.apple.com/app/your-app-id', // Replace with your App Store ID
-          android: 'market://details?id=your.app.id' // Replace with your app package name
+          ios: `https://apps.apple.com/app/${appStoreId}`,
+          android: `market://details?id=${androidPackageName}` // Direct link for Play Store
         });
 
         try {
@@ -205,10 +256,10 @@ export const SettingsScreen = () => {
           if (canOpen) {
             await Linking.openURL(storeUrl);
           } else {
-            // Fallback URLs if market URLs don't work
+            // Fallback URLs in case the direct market URL fails
             const fallbackUrl = Platform.select({
-              ios: 'https://apps.apple.com/app/your-app-id',
-              android: 'https://play.google.com/store/apps/details?id=your.app.id'
+              ios: `https://apps.apple.com/app/${appStoreId}`,
+              android: `https://play.google.com/store/apps/details?id=${androidPackageName}`
             });
             await Linking.openURL(fallbackUrl);
           }
@@ -228,26 +279,25 @@ export const SettingsScreen = () => {
   };
 
   const renderItem = (item) => {
-    switch (item.type) {
-      case 'toggle':
-        return (
-          <Switch
-            value={item.id === 'darkMode' ? isDark : false}
-            onValueChange={item.id === 'darkMode' ? toggleTheme : null}
-            trackColor={{ false: '#767577', true: '#FF2D55' }}
-            thumbColor={'#fff'}
-            style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-          />
-        );
-      default:
-        return (
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={theme.textSecondary}
-          />
-        );
+
+    if (item.type === 'toggle') {
+      return (
+        <Switch
+          value={item.id === 'darkMode' ? isDark : false}
+          onValueChange={item.id === 'darkMode' ? toggleTheme : null}
+          trackColor={{ false: '#767577', true: '#FF2D55' }}
+          thumbColor={'#fff'}
+          style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+        />
+      );
     }
+    return (
+      <Ionicons
+        name="chevron-forward"
+        size={20}
+        color={theme.textSecondary}
+      />
+    );
   };
 
   return (
@@ -405,5 +455,5 @@ const styles = StyleSheet.create({
   version: {
     fontSize: 12,
     opacity: 0.7,
-  }
+  },
 }); 

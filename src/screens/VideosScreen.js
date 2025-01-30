@@ -21,12 +21,14 @@ import { useTheme } from '../context/ThemeContext';
 import { FooterMessage } from '../components/shared/FooterMessage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import Purchases from 'react-native-purchases';
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
 const SPACING = 1;
 const ITEM_WIDTH = (width - (COLUMN_COUNT + 1) * SPACING) / COLUMN_COUNT;
-const VIDEOS_PER_PAGE = 12;
-const MAX_VIDEOS = 18;
+const MAX_VIDEOS = 15;
 const FREE_VIDEOS = 9;
 
 const VideoCard = ({ item, onPress }) => (
@@ -71,17 +73,18 @@ export const VideosScreen = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
     loadVideos();
+    checkSubscriptionStatus();
   }, [selectedCountry, selectedSort]);
 
   const loadVideos = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.getTopVideos(selectedCountry);
+      const data = await api.getTopVideos(selectedCountry, selectedSort);
       const videos = data.slice(0, MAX_VIDEOS).map((video, index) => ({
         ...video,
         isLocked: index >= FREE_VIDEOS
@@ -95,20 +98,57 @@ export const VideosScreen = () => {
     }
   };
 
+  const checkSubscriptionStatus = async () => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      const isPremium = customerInfo?.entitlements?.active?.['pro']?.isActive ?? false;
+      setIsPro(isPremium);
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      setIsPro(false);
+    }
+  };
+
+  const proAction = async () => {
+    try {
+      const paywallResult = await RevenueCatUI.presentPaywallIfNeeded({
+        requiredEntitlementIdentifier: 'pro',
+      });
+      
+      switch (paywallResult) {
+        case PAYWALL_RESULT.NOT_PRESENTED:
+          console.log("Already subscribed");
+          setIsPro(true)
+          break;
+        case PAYWALL_RESULT.PURCHASED:
+        case PAYWALL_RESULT.RESTORED:
+          console.log("Just purchased or restored");
+          setIsPro(true)
+          break;
+        case PAYWALL_RESULT.ERROR:
+        case PAYWALL_RESULT.CANCELLED:
+          console.log("Purchase cancelled or error")
+          break;
+        default:
+          console.log("Default case");
+          break;
+      }
+    } catch (error) {
+      console.error("Error in proAction:", error);
+    }
+  };
+
   const openVideo = (url) => {
     Linking.openURL(url);
   };
 
-  const handleUpgradePress = () => {
-    setShowUpgradeModal(true);
-  };
 
   const renderVideo = ({ item, index }) => {
     if (!item.cover || !item.url) {
       return null;
     }
 
-    if (index < FREE_VIDEOS) {
+    if (isPro || index < FREE_VIDEOS) {
       return (
         <VideoCard 
           item={item}
@@ -117,45 +157,16 @@ export const VideosScreen = () => {
       );
     }
     
-    return <LockedVideoCard item={item} onPress={handleUpgradePress} />;
+    return <LockedVideoCard item={item} onPress={proAction} />;
   };
 
-  const renderUpgradeModal = () => (
-    <Modal
-      visible={showUpgradeModal}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setShowUpgradeModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.upgradeModal}>
-          <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
-          <Text style={styles.upgradeDescription}>
-            Get access to all trending videos and unlock premium features!
-          </Text>
-          <TouchableOpacity 
-            style={styles.upgradeButton}
-            onPress={() => setShowUpgradeModal(false)}
-          >
-            <Text style={styles.upgradeButtonText}>Subscribe Now</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.cancelButton}
-            onPress={() => setShowUpgradeModal(false)}
-          >
-            <Text style={styles.cancelButtonText}>Maybe Later</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
 
   if (loading) {
     return (
       <AppLayout 
         selectedCountry={selectedCountry} 
         onSelectCountry={setSelectedCountry}
-        onPremiumPress={handleUpgradePress}
+        onPremiumPress={proAction}
         type="videos"
       >
         <View style={styles.centered}>
@@ -173,10 +184,10 @@ export const VideosScreen = () => {
         <SortDropdown
           selectedSort={selectedSort}
           onSelect={setSelectedSort}
-          onPremiumPress={handleUpgradePress}
+          onPremiumPress={proAction}
         />
       }
-      onPremiumPress={handleUpgradePress}
+      onPremiumPress={proAction}
       type="videos"
     >
       {videos.length === 0 ? (
@@ -202,11 +213,10 @@ export const VideosScreen = () => {
               </Text>
             </View>
           }
-          ListFooterComponent={videos.length > 0 ? <FooterMessage type="videos" /> : null}
+          ListFooterComponent={videos.length > 0 && !isPro ? <FooterMessage type="videos" /> : null}
           contentContainerStyle={[styles.listContentContainer, { paddingBottom: 20 }]}
         />
       )}
-      {renderUpgradeModal()}
     </AppLayout>
   );
 };

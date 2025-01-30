@@ -17,7 +17,7 @@ import { notificationService } from './src/services/notificationService';
 import { WelcomeScreen } from './src/screens/onboarding/WelcomeScreen';
 import { OnboardingScreen } from './src/screens/onboarding/OnboardingScreen';
 
-
+import Purchases from 'react-native-purchases';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -122,6 +122,27 @@ const AppNavigator = () => {
   const { theme } = useTheme();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
+  //Configure RevenueCat
+  useEffect(() => {
+    const initializePurchases = async () => {
+      try {
+        if (Platform.OS === 'ios') {
+          await Purchases.configure({ apiKey: process.env.EXPO_PUBLIC_RC_IOS });
+        } else if (Platform.OS === 'android') {
+          await Purchases.configure({ apiKey: process.env.EXPO_PUBLIC_RC_ANDROID });
+        }
+        
+        // Test fetching products
+        const offerings = await Purchases.getOfferings();
+        console.log('RevenueCat Offerings:', offerings);
+      } catch (error) {
+        console.error('RevenueCat initialization error:', error);
+      }
+    };
+
+    initializePurchases();
+  }, []);
+
   const renderInfoButton = () => (
     <TouchableOpacity 
       onPress={() => setShowInfoModal(true)}
@@ -148,6 +169,8 @@ const AppNavigator = () => {
           headerTitleStyle: {
             color: theme.text,
           },
+          gestureEnabled: false,
+          swipeEnabled: false,
         }}
       >
         <Stack.Screen 

@@ -10,26 +10,20 @@ import { API_ENDPOINTS } from '../../services/apifyService';
 import { useTheme } from '../../context/ThemeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// All possible countries with their availability per tab
 const ALL_COUNTRIES = [
-  // Free Tier (6 countries)
-  { id: 'US', name: 'United States' },
-  { id: 'GB', name: 'United Kingdom' },
+  { id: 'AU', name: 'Australia' },
   { id: 'BR', name: 'Brazil' },
+  { id: 'CA', name: 'Canada' },
   { id: 'FR', name: 'France' },
+  { id: 'DE', name: 'Germany' },
+  { id: 'ID', name: 'Indonesia' },
   { id: 'JP', name: 'Japan' },
+  { id: 'MY', name: 'Malaysia' },
   { id: 'MX', name: 'Mexico', availableIn: ['hashtags', 'songs'] },
-
-  // Premium Tier (9 countries)
-  { id: 'CA', name: 'Canada', premium: true  },
-  { id: 'AU', name: 'Australia', premium: true },
-  { id: 'DE', name: 'Germany',  premium: true },
-  { id: 'KR', name: 'South Korea',  premium: true },
-  { id: 'ID', name: 'Indonesia',  premium: true },
-  { id: 'NG', name: 'Nigeria',  availableIn: ['hashtags', 'songs'], premium: true },
-  { id: 'PH', name: 'Philippines',  premium: true },
-  // { id: 'IT', name: 'Italy', premium: true  },
-  // { id: 'ES', name: 'Spain', premium: true  },
+  { id: 'PH', name: 'Philippines' },
+  { id: 'ES', name: 'Spain' },
+  { id: 'GB', name: 'United Kingdom' },
+  { id: 'US', name: 'United States' }
 ];
 
 export const COUNTRIES = {

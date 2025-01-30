@@ -20,13 +20,8 @@ import { FooterMessage } from '../components/shared/FooterMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storageService } from '../services/storageService';
 
-const MAX_HASHTAGS = 15;
-const FREE_HASHTAGS = 10;
-
-const MAX_INDUSTRY_HASHTAGS = 15;
-const FREE_INDUSTRY_HASHTAGS = 10;
-
-const SAVED_HASHTAGS_KEY = '@saved_hashtags';
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import Purchases from 'react-native-purchases';
 
 const formatNumber = (num) => {
   if (num === undefined || num === null) {
@@ -51,19 +46,38 @@ const formatNumber = (num) => {
 
 export const HashtagsScreen = () => {
   const { theme } = useTheme();
+
   const [hashtags, setHashtags] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState('US');
   const [selectedIndustry, setSelectedIndustry] = useState('entertainment');
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
   const [isGlobalView, setIsGlobalView] = useState(false);
-  const [savedItems, setSavedItems] = useState(new Set());
+  const [isPro, setIsPro] = useState(false);
+
   const [recentlySaved, setRecentlySaved] = useState(null);
   const [savedHashtags, setSavedHashtags] = useState(new Set());
 
-  const handleModeSwitch = () => {
-    setIsGlobalView(!isGlobalView);
+  const MAX_HASHTAGS = isPro? 100: 15;
+  const FREE_HASHTAGS = 10;
+
+  const MAX_INDUSTRY_HASHTAGS = isPro? 100: 15;
+  const FREE_INDUSTRY_HASHTAGS = 10;
+
+  useEffect(() => {
+    checkSubscriptionStatus();
+  }, []);
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      // Check if user has 'pro' entitlement
+      const isPremium = customerInfo?.entitlements?.active?.['pro']?.isActive ?? false;
+      setIsPro(isPremium);
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      setIsPro(false);
+    }
   };
 
   useEffect(() => {
@@ -84,6 +98,42 @@ export const HashtagsScreen = () => {
     }
   };
 
+
+  const handleModeSwitch = () => {
+    setIsGlobalView(!isGlobalView);
+  };
+
+  const proAction = async () => {
+    try {
+      const paywallResult = await RevenueCatUI.presentPaywallIfNeeded({
+        requiredEntitlementIdentifier: 'pro',
+      });
+      
+      switch (paywallResult) {
+        case PAYWALL_RESULT.NOT_PRESENTED:
+          console.log("Already subscribed");
+          setIsPro(true)
+          break;
+        case PAYWALL_RESULT.PURCHASED:
+        case PAYWALL_RESULT.RESTORED:
+          console.log("Just purchased or restored");
+          setIsPro(true)
+          break;
+        case PAYWALL_RESULT.ERROR:
+        case PAYWALL_RESULT.CANCELLED:
+          console.log("Purchase cancelled or error")
+          break;
+        default:
+          console.log("Default case");
+          break;
+      }
+    } catch (error) {
+      console.error("Error in proAction:", error);
+    }
+  };
+
+
+
   const loadSavedHashtags = async () => {
     try {
       const saved = await storageService.getSavedItems();
@@ -96,9 +146,6 @@ export const HashtagsScreen = () => {
     }
   };
 
-  const handleUpgradePress = () => {
-    setShowUpgradeModal(true);
-  };
 
   const handleSaveHashtag = async (hashtag) => {
     try {
@@ -271,6 +318,11 @@ export const HashtagsScreen = () => {
   };
 
   const renderHashtag = ({ item, index }) => {
+    // If the user is Pro, show all hashtags unlocked
+    if (isPro) {
+      return <HashtagItem item={item} />;
+    }
+
     const maxItems = isGlobalView ? MAX_INDUSTRY_HASHTAGS : MAX_HASHTAGS;
     const freeItems = isGlobalView ? FREE_INDUSTRY_HASHTAGS : FREE_HASHTAGS;
 
@@ -282,42 +334,9 @@ export const HashtagsScreen = () => {
       return null;
     }
     
-    return <LockedHashtagItem item={item} onPress={handleUpgradePress} />;
+    return <LockedHashtagItem item={item} onPress={proAction} />;
   };
 
-  const renderUpgradeModal = () => (
-    <Modal
-      visible={showUpgradeModal}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setShowUpgradeModal(false)}
-    >
-      <View style={[styles.modalOverlay, { backgroundColor: theme.modalBackground }]}>
-        <View style={[styles.upgradeModal, { backgroundColor: theme.cardBackground }]}>
-          <Text style={[styles.upgradeTitle, { color: theme.accent }]}>
-            Upgrade to Premium
-          </Text>
-          <Text style={[styles.upgradeDescription, { color: theme.textSecondary }]}>
-            Get access to all trending hashtags and unlock premium features!
-          </Text>
-          <TouchableOpacity 
-            style={[styles.upgradeButton, { backgroundColor: theme.accent }]}
-            onPress={() => setShowUpgradeModal(false)}
-          >
-            <Text style={styles.upgradeButtonText}>Subscribe Now</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.cancelButton}
-            onPress={() => setShowUpgradeModal(false)}
-          >
-            <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>
-              Maybe Later
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
 
   if (loading) {
     return (
@@ -326,7 +345,7 @@ export const HashtagsScreen = () => {
         onSelectCountry={setSelectedCountry}
         selectedIndustry={selectedIndustry}
         onSelectIndustry={setSelectedIndustry}
-        onPremiumPress={handleUpgradePress}
+        onPremiumPress={proAction}
         type="hashtags"
         isIndustryMode={isGlobalView}
         rightControl={
@@ -335,7 +354,7 @@ export const HashtagsScreen = () => {
             onPress={handleModeSwitch}
           >
             <Ionicons 
-              name={isGlobalView ? "business" : "location-outline"}
+              name={isGlobalView ? "earth" : "location-outline"}
               size={20} 
               color={theme.accent}
             />
@@ -355,7 +374,7 @@ export const HashtagsScreen = () => {
       onSelectCountry={setSelectedCountry}
       selectedIndustry={selectedIndustry}
       onSelectIndustry={setSelectedIndustry}
-      onPremiumPress={handleUpgradePress}
+      onPremiumPress={proAction}
       type="hashtags"
       isIndustryMode={isGlobalView}
       rightControl={
@@ -364,7 +383,7 @@ export const HashtagsScreen = () => {
           onPress={handleModeSwitch}
         >
           <Ionicons 
-            name={isGlobalView ? "business" : "location-outline"}
+            name={isGlobalView ? "earth" : "location-outline"}
             size={20} 
             color={theme.accent}
           />
@@ -386,11 +405,10 @@ export const HashtagsScreen = () => {
               </Text>
             </View>
           }
-          ListFooterComponent={hashtags.length > 0 ? <FooterMessage isIndustryView={isGlobalView} type="hashtags" /> : null}
+          ListFooterComponent={hashtags.length > 0 && !isPro ? <FooterMessage isIndustryView={isGlobalView} type="hashtags" /> : null}
           style={{ backgroundColor: theme.background }}
           contentContainerStyle={styles.listContentContainer}
         />
-        {renderUpgradeModal()}
       </View>
     </AppLayout>
   );

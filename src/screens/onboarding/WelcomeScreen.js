@@ -29,7 +29,7 @@ export const WelcomeScreen = ({ navigation }) => {
           <View style={styles.textContainer}>
             <Text style={styles.title}>Level Up with{'\n'}ViralPost</Text>
             <Text style={styles.subtitle}>
-              Discover what's trending and go viral
+              Discover what's trending, use it on your videos, and go viral
             </Text>
           </View>
 
@@ -78,11 +78,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#FFFFFF',
     opacity: 0.9,
     textAlign: 'center',
-   // paddingHorizontal: 20,
+    paddingHorizontal: 25,
   },
   buttonContainer: {
     width: '100%',

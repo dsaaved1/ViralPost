@@ -10,9 +10,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export const SORT_OPTIONS = [
   { id: 'hot', name: 'Hot' },
-  { id: 'likes', name: 'Likes', premium: true },
-  { id: 'comments', name: 'Comments', premium: true },
-  { id: 'shares', name: 'Shares', premium: true },
+  { id: 'likes', name: 'Likes' },
+  { id: 'comments', name: 'Comments' },
+  { id: 'shares', name: 'Shares' },
 ];
 
 export const SortDropdown = ({ selectedSort, onSelect, onPremiumPress, containerStyle }) => {

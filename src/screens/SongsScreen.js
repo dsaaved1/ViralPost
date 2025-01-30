@@ -21,15 +21,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { FooterMessage } from '../components/shared/FooterMessage';
 import { storageService } from '../services/storageService';
 
+import Purchases from 'react-native-purchases';
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+
 export const SongsScreen = () => {
   const { theme } = useTheme();
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState('US');
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isListView, setIsListView] = useState(true);
   const [savedSongs, setSavedSongs] = useState(new Set());
+  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
     loadSongs();
@@ -37,6 +40,10 @@ export const SongsScreen = () => {
 
   useEffect(() => {
     loadSavedSongs();
+  }, []);
+
+  useEffect(() => {
+    checkSubscriptionStatus();
   }, []);
 
   const loadSongs = async () => {
@@ -65,9 +72,43 @@ export const SongsScreen = () => {
     }
   };
 
-  const handleUpgradePress = () => {
-    setShowUpgradeModal(true);
+  const checkSubscriptionStatus = async () => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      const isPremium = customerInfo?.entitlements?.active?.['pro']?.isActive ?? false;
+      setIsPro(isPremium);
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      setIsPro(false);
+    }
   };
+
+  const proAction = async () => {
+    try {
+      const paywallResult = await RevenueCatUI.presentPaywallIfNeeded({
+        requiredEntitlementIdentifier: 'pro',
+      });
+      
+      switch (paywallResult) {
+        case PAYWALL_RESULT.NOT_PRESENTED:
+          console.log("Already subscribed in songs");
+          setIsPro(true)
+          break;
+        case PAYWALL_RESULT.PURCHASED:
+        case PAYWALL_RESULT.RESTORED:
+          setIsPro(true);
+          break;
+        case PAYWALL_RESULT.ERROR:
+        case PAYWALL_RESULT.CANCELLED:
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error("Error in proAction:", error);
+    }
+  };
+
+
 
   const openSongLink = (link) => {
     Linking.openURL(link);
@@ -95,7 +136,7 @@ export const SongsScreen = () => {
     }
   };
 
-  const MAX_SONGS = 15;
+  const MAX_SONGS = isPro ? 100 : 15;
   const FREE_SONGS = 10;
 
   const dynamicStyles = {
@@ -120,7 +161,7 @@ export const SongsScreen = () => {
         style={styles.coverImage}
         resizeMode="cover"
       />
-      <View style={styles.songInfo}>
+      <View style={styles.songCardContent}>
         <Text style={[styles.songTitle, { color: theme.text }]} numberOfLines={1}>
           {item.title}
         </Text>
@@ -146,7 +187,11 @@ export const SongsScreen = () => {
           resizeMode="cover"
         />
         <View style={[styles.lockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
-          <Text style={styles.lockIcon}>🔒</Text>
+          <Ionicons 
+            name="lock-closed" 
+            size={28}
+            color="#fff"
+          />
         </View>
       </View>
       <View style={styles.songInfo}>
@@ -249,7 +294,9 @@ export const SongsScreen = () => {
   };
 
   const renderSong = ({ item, index }) => {
-    if (index < FREE_SONGS) {
+
+
+    if (isPro || index < FREE_SONGS) {
       return isListView ? (
         <SongListItem 
           item={item} 
@@ -268,41 +315,11 @@ export const SongsScreen = () => {
     }
     
     return isListView ? (
-      <LockedSongListItem item={item} onPress={handleUpgradePress} />
+      <LockedSongListItem item={item} onPress={proAction} />
     ) : (
-      <LockedSongCard item={item} onPress={handleUpgradePress} />
+      <LockedSongCard item={item} onPress={proAction} />
     );
   };
-
-  const renderUpgradeModal = () => (
-    <Modal
-      visible={showUpgradeModal}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setShowUpgradeModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.upgradeModal}>
-          <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
-          <Text style={styles.upgradeDescription}>
-            Get access to all trending songs and unlock premium features!
-          </Text>
-          <TouchableOpacity 
-            style={styles.upgradeButton}
-            onPress={() => setShowUpgradeModal(false)}
-          >
-            <Text style={styles.upgradeButtonText}>Subscribe Now</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.cancelButton}
-            onPress={() => setShowUpgradeModal(false)}
-          >
-            <Text style={styles.cancelButtonText}>Maybe Later</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
 
   const TableHeader = () => (
     <View style={[styles.headerRow, { 
@@ -392,16 +409,9 @@ export const SongsScreen = () => {
               </Text>
             </View>
           }
-          ListFooterComponent={songs.length > 0 ? <FooterMessage type="songs" /> : null}
+          ListFooterComponent={songs.length > 0 && !isPro ? <FooterMessage type="songs" /> : null}
         />
-        {renderUpgradeModal()}
       </View>
-      <CountryDropdown
-        selectedCountry={selectedCountry}
-        onSelect={setSelectedCountry}
-        onPremiumPress={handleUpgradePress}
-        type="songs"
-      />
     </AppLayout>
   );
 };
@@ -482,16 +492,16 @@ const styles = StyleSheet.create({
   },
   lockedCoverContainer: {
     position: 'relative',
+    width: '100%',
+    aspectRatio: 1,
   },
   lockOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopLeftRadius: BORDER_RADIUS,
+    borderTopRightRadius: BORDER_RADIUS,
   },
   lockIcon: {
     marginLeft: 8,
@@ -655,13 +665,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 16,
   },
-  rankText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 0,
-    textAlign: 'center',
-  },
   rankSame: {
     fontSize: 12,
     color: '#8E8E93',
@@ -697,17 +700,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 12,
   },
-  songInfo: {
-    flex: 1,
-    marginRight: 40,
+  songCardContent: {
+    padding: 16,
+    paddingHorizontal: 20,
   },
-  songTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  songAuthor: {
-    fontSize: 14,
-    opacity: 0.8,
-  }
 }); 

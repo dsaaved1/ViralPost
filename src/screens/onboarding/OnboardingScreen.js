@@ -16,6 +16,9 @@ import { StatsView } from '../../components/onboarding/StatsView';
 import { TrendingsDemoView } from '../../components/onboarding/TrendingsDemoView';
 import { SchedulingDemoView } from '../../components/onboarding/SchedulingDemoView';
 
+import { notificationService } from '../../services/notificationService';
+import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
+
 const { width } = Dimensions.get('window');
 
 export const OnboardingScreen = ({ navigation }) => {
@@ -25,6 +28,20 @@ export const OnboardingScreen = ({ navigation }) => {
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
+  const handleComplete = async () => {
+    try {
+      // Request notification permissions
+      await RevenueCatUI.presentPaywall();
+      
+      await notificationService.requestPermissions();
+      // Navigate to main app
+      navigation.navigate('MainTabs');
+    } catch (error) {
+      console.error('Error requesting notifications:', error);
+      navigation.navigate('MainTabs');
+    }
+  }; 
+  
   const handleNext = () => {
     if (currentPage === 0 && !showingAfterImage) {
       setShowingAfterImage(true);
@@ -36,7 +53,7 @@ export const OnboardingScreen = ({ navigation }) => {
       setCurrentPage(currentPage + 1);
       setShowingAfterImage(false);
     } else {
-      navigation.navigate('MainTabs');
+      handleComplete()
     }
   };
 

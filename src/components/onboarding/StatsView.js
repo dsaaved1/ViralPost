@@ -20,10 +20,10 @@ export const StatsView = () => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>Elevate Your Reach</Text>
         {/* <Text style={styles.title}>
-         Stats That Matter
+         Stats That Matter, Elevate Your Reach  Upload your videos with the latest trends and take your content creation to the next level.  We're here to help you! 
         </Text> */}
         <Text style={styles.subtitle}>
-          Upload your videos with the latest trends and take your content creation to the next level. We're here to help you!
+          Uploading your videos with the latest trends can significantly increase you chances to go viral according to studies.
         </Text>
       </View>
     </View>

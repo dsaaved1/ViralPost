@@ -20,37 +20,3 @@ const loadSavedHashtags = async () => {
   }
 };
 
-const handleHashtagLongPress = async (item) => {
-  try {
-    const newSavedHashtags = new Set(savedHashtags);
-    
-    if (savedHashtags.has(item.id)) {
-      newSavedHashtags.delete(item.id);
-      // Show toast or notification
-      Toast.show({
-        type: 'info',
-        text1: 'Hashtag removed from saved',
-      });
-    } else {
-      newSavedHashtags.add(item.id);
-      // Show toast or notification
-      Toast.show({
-        type: 'success',
-        text1: 'Hashtag saved!',
-      });
-    }
-    
-    setSavedHashtags(newSavedHashtags);
-    await AsyncStorage.setItem(
-      SAVED_HASHTAGS_KEY,
-      JSON.stringify([...newSavedHashtags])
-    );
-  } catch (error) {
-    console.error('Error saving hashtag:', error);
-  }
-};
-
-const handleHashtagPress = (hashtag) => {
-  // Open hashtag link
-  Linking.openURL(`https://www.tiktok.com/tag/${hashtag}`);
-}; 

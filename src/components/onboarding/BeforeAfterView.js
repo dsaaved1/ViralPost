@@ -69,7 +69,7 @@ export const BeforeAfterView = ({ showAfterImage }) => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>Did You Know?</Text>
         <Text style={styles.subtitle}>
-          Using the right trending hashtag, song, or video idea can be the key to making your content go viral.
+          Using the right trending hashtag, song, or video idea could be the missing key to making your content go viral.
         </Text>
       </View>
     </View>
