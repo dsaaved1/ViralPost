@@ -10,6 +10,7 @@ import {
   Linking,
   Modal,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import { AppLayout } from '../components/shared/AppLayout';
 import { SortDropdown } from '../components/shared/SortDropdown';
@@ -23,6 +24,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Purchases from 'react-native-purchases';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import { CustomHeader } from '../components/shared/CustomHeader';
+import { FilterModal } from '../components/shared/FilterModal';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
@@ -31,19 +34,71 @@ const ITEM_WIDTH = (width - (COLUMN_COUNT + 1) * SPACING) / COLUMN_COUNT;
 const MAX_VIDEOS = 15;
 const FREE_VIDEOS = 9;
 
-const VideoCard = ({ item, onPress }) => (
-  <TouchableOpacity 
-    style={styles.videoCard}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <Image 
-      source={{ uri: item.cover }} 
-      style={styles.thumbnail}
-      resizeMode="cover"
-    />
-  </TouchableOpacity>
-);
+const VideoCard = ({ item, onPress, sortType }) => {
+  const formatCount = (count) => {
+    const num = parseInt(count);
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num;
+  };
+
+  const getStatDisplay = () => {
+    switch (sortType) {
+      case 'hot':
+        return {
+          icon: 'play-outline',
+          count: formatCount(item.stats?.playCount || 0),
+        };
+      case 'likes':
+        return {
+          icon: 'heart-outline',
+          count: formatCount(item.stats?.diggCount || 0),
+        };
+      case 'comments':
+        return {
+          icon: 'chatbubble-ellipses-outline',
+          count: formatCount(item.stats?.commentCount || 0),
+        };
+      case 'shares':
+        return {
+          icon: 'arrow-redo-outline',
+          count: formatCount(item.stats?.shareCount || 0),
+        };
+      default:
+        return null;
+    }
+  };
+
+  const stat = getStatDisplay();
+
+  return (
+    <TouchableOpacity 
+      style={styles.videoCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Image 
+        source={{ uri: item.cover }} 
+        style={styles.thumbnail}
+        resizeMode="cover"
+      />
+      {stat && (
+        <View style={[styles.statContainer, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
+          <Ionicons 
+            name={stat.icon} 
+            size={14} 
+            color="#fff" 
+          />
+          <Text style={styles.statText}>{stat.count}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 const LockedVideoCard = ({ item, onPress }) => (
   <TouchableOpacity 
@@ -66,7 +121,7 @@ const LockedVideoCard = ({ item, onPress }) => (
   </TouchableOpacity>
 );
 
-export const VideosScreen = () => {
+export const VideosScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const [selectedCountry, setSelectedCountry] = useState('US');
   const [selectedSort, setSelectedSort] = useState('hot');
@@ -74,29 +129,15 @@ export const VideosScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPro, setIsPro] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   useEffect(() => {
-    loadVideos();
     checkSubscriptionStatus();
-  }, [selectedCountry, selectedSort]);
+  }, []);
 
-  const loadVideos = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await api.getTopVideos(selectedCountry, selectedSort);
-      const videos = data.slice(0, MAX_VIDEOS).map((video, index) => ({
-        ...video,
-        isLocked: index >= FREE_VIDEOS
-      }));
-      setVideos(videos);
-    } catch (error) {
-      console.error(error);
-      setError('Failed to load videos');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchVideos();
+  }, [isPro, selectedCountry, selectedSort]);
 
   const checkSubscriptionStatus = async () => {
     try {
@@ -109,6 +150,26 @@ export const VideosScreen = () => {
     }
   };
 
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.getTopVideos(selectedCountry, selectedSort);
+      
+      const processedVideos = data.map((video, index) => ({
+        ...video,
+        isLocked: !isPro && index < 3
+      }));
+      
+      setVideos(processedVideos);
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const proAction = async () => {
     try {
       const paywallResult = await RevenueCatUI.presentPaywallIfNeeded({
@@ -117,17 +178,14 @@ export const VideosScreen = () => {
       
       switch (paywallResult) {
         case PAYWALL_RESULT.NOT_PRESENTED:
-          console.log("Already subscribed");
-          setIsPro(true)
-          break;
         case PAYWALL_RESULT.PURCHASED:
         case PAYWALL_RESULT.RESTORED:
-          console.log("Just purchased or restored");
-          setIsPro(true)
+          setIsPro(true);
+          fetchVideos();
           break;
         case PAYWALL_RESULT.ERROR:
         case PAYWALL_RESULT.CANCELLED:
-          console.log("Purchase cancelled or error")
+          console.log("Purchase cancelled or error");
           break;
         default:
           console.log("Default case");
@@ -142,17 +200,20 @@ export const VideosScreen = () => {
     Linking.openURL(url);
   };
 
-
-  const renderVideo = ({ item, index }) => {
+  const renderVideo = ({ item, index, totalCount }) => {
     if (!item.cover || !item.url) {
       return null;
     }
 
-    if (isPro || index < FREE_VIDEOS) {
+    // Lock only first 3 entries for non-pro users
+    const isLocked = !isPro && index < 3;
+    
+    if (!isLocked) {
       return (
         <VideoCard 
           item={item}
           onPress={() => openVideo(item.url)}
+          sortType={selectedSort}
         />
       );
     }
@@ -160,64 +221,83 @@ export const VideosScreen = () => {
     return <LockedVideoCard item={item} onPress={proAction} />;
   };
 
-
   if (loading) {
     return (
-      <AppLayout 
-        selectedCountry={selectedCountry} 
-        onSelectCountry={setSelectedCountry}
-        onPremiumPress={proAction}
-        type="videos"
-      >
+      <View style={{ flex: 1, backgroundColor: theme.background }}>
+        <SafeAreaView style={{ backgroundColor: theme.background }}>
+          <CustomHeader 
+            title="Videos"
+            onBack={() => navigation.goBack()}
+            onFilter={() => setShowFilterModal(true)}
+          />
+        </SafeAreaView>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#666" />
         </View>
-      </AppLayout>
+      </View>
     );
   }
 
   return (
-    <AppLayout 
-      selectedCountry={selectedCountry} 
-      onSelectCountry={setSelectedCountry}
-      extraFilters={
-        <SortDropdown
-          selectedSort={selectedSort}
-          onSelect={setSelectedSort}
-          onPremiumPress={proAction}
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <SafeAreaView style={{ backgroundColor: theme.background }}>
+        <CustomHeader 
+          title="Videos"
+          onBack={() => navigation.goBack()}
+          onFilter={() => setShowFilterModal(true)}
         />
-      }
-      onPremiumPress={proAction}
-      type="videos"
-    >
-      {videos.length === 0 ? (
-        <View style={styles.centered}>
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-            No data available yet
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={videos}
-          renderItem={({ item, index }) => (
-            <View style={styles.videoItem}>
-              {renderVideo({ item, index })}
-            </View>
-          )}
-          keyExtractor={item => item.id}
-          numColumns={3}
-          ListEmptyComponent={
-            <View style={styles.centered}>
-              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                No videos found
-              </Text>
-            </View>
-          }
-          ListFooterComponent={videos.length > 0 && !isPro ? <FooterMessage type="videos" /> : null}
-          contentContainerStyle={[styles.listContentContainer, { paddingBottom: 20 }]}
-        />
-      )}
-    </AppLayout>
+      </SafeAreaView>
+      
+      <AppLayout
+        selectedCountry={selectedCountry}
+        onSelectCountry={setSelectedCountry}
+        onPremiumPress={proAction}
+        type="videos"
+        showFilters={false}
+      >
+        {videos.length === 0 ? (
+          <View style={styles.centered}>
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+              No data available yet
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={videos}
+            renderItem={({ item, index }) => (
+              <View style={styles.videoItem}>
+                {renderVideo({ item, index, totalCount: videos.length })}
+              </View>
+            )}
+            keyExtractor={item => item.id}
+            numColumns={3}
+            ListEmptyComponent={
+              <View style={styles.centered}>
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                  No videos found
+                </Text>
+              </View>
+            }
+            ListFooterComponent={videos.length > 0 ? <FooterMessage isPro={isPro} type="videos" /> : null}
+            contentContainerStyle={styles.listContentContainer}
+          />
+        )}
+      </AppLayout>
+
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        selectedCountry={selectedCountry}
+        selectedSort={selectedSort}
+        onSelectCountry={setSelectedCountry}
+        onSelectSort={setSelectedSort}
+        type="videos"
+        showSort={true}
+        showCountry={false}
+        onPremiumPress={proAction}
+        isPro={isPro}
+      />
+    </View>
   );
 };
 
@@ -319,5 +399,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginBottom: 8,
+  },
+  listContentContainer: {
+    padding: SPACING,
+  },
+  statContainer: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  statText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+    marginLeft: 4,
   },
 }); 

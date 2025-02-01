@@ -134,19 +134,18 @@ export const SettingsScreen = () => {
           icon: 'mail',
           type: 'link'
         },
-        
-        // {
-        //   id: 'terms',
-        //   title: 'Terms of Use',
-        //   icon: 'document-text',
-        //   type: 'link'
-        // },
-        // {
-        //   id: 'privacy',
-        //   title: 'Privacy Policy',
-        //   icon: 'shield-checkmark',
-        //   type: 'link'
-        // }
+        {
+          id: 'terms',
+          title: 'Terms of Service',
+          icon: 'document-text',
+          type: 'link'
+        },
+        {
+          id: 'privacy',
+          title: 'Privacy Policy',
+          icon: 'shield-checkmark',
+          type: 'link'
+        }
       ]
     }
   ];
@@ -275,6 +274,30 @@ export const SettingsScreen = () => {
           Linking.openSettings();
         }
         break;
+
+      case 'terms':
+        try {
+          const termsUrl = 'https://www.termsfeed.com/live/0081ea41-512e-46db-a1c9-1bc159b9f308';
+          const canOpenTerms = await Linking.canOpenURL(termsUrl);
+          if (canOpenTerms) {
+            await Linking.openURL(termsUrl);
+          }
+        } catch (error) {
+          console.error('Error opening terms:', error);
+        }
+        break;
+
+      case 'privacy':
+        try {
+          const privacyUrl = 'https://www.termsfeed.com/live/b345a049-0dc0-4dd8-8a71-56d2e44a4bdb';
+          const canOpenPrivacy = await Linking.canOpenURL(privacyUrl);
+          if (canOpenPrivacy) {
+            await Linking.openURL(privacyUrl);
+          }
+        } catch (error) {
+          console.error('Error opening privacy policy:', error);
+        }
+        break;
     }
   };
 
@@ -377,9 +400,9 @@ export const SettingsScreen = () => {
               <Ionicons name="logo-twitter" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
           </View> */}
-          <Text style={[styles.version, { color: theme.textSecondary }]}>
+          {/* <Text style={[styles.version, { color: theme.textSecondary }]}>
             Version 1.0.0
-          </Text>
+          </Text> */}
         </View>
       </View>
     </SafeAreaView>

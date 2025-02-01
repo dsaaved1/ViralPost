@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { CountryDropdown } from './CountryDropdown';
 import { useTheme } from '../../context/ThemeContext';
@@ -6,6 +6,7 @@ import { IndustryDropdown } from './IndustryDropdown';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { SortDropdown } from './SortDropdown';
+import { FilterModal } from './FilterModal';
 
 export const AppLayout = ({ 
   children,
@@ -21,6 +22,7 @@ export const AppLayout = ({
   isIndustryMode,
   showTitle = false,
 }) => {
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const { theme } = useTheme();
 
   const renderFilters = () => {
@@ -114,32 +116,52 @@ export const AppLayout = ({
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        {showTitle && (
-          <View style={[styles.header, { backgroundColor: theme.background }]}>
-            <Text style={[styles.appTitle, { color: theme.accent }]}>Trendify</Text>
-          </View>
-        )}
-
-        {showFilters && (
-          <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
-            {renderFilters()}
-          </View>
-        )}
-
-        <View style={[styles.content, { backgroundColor: theme.background }]}>
-          {children}
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {showTitle && (
+        <View style={[styles.header, { backgroundColor: theme.background }]}>
+          <Text style={[styles.appTitle, { color: theme.accent }]}>Trendify</Text>
         </View>
+      )}
+
+      {showFilters && (
+        <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
+          <TouchableOpacity 
+            style={[styles.filterButton, { backgroundColor: theme.surface }]}
+            onPress={() => setShowFilterModal(true)}
+          >
+            <Ionicons name="funnel-outline" size={20} color={theme.text} />
+            <Text style={[styles.filterButtonText, { color: theme.text }]}>
+              Filters
+            </Text>
+          </TouchableOpacity>
+          {rightControl && (
+            <View style={styles.rightControls}>
+              {rightControl}
+            </View>
+          )}
+        </View>
+      )}
+
+      <View style={styles.content}>
+        {children}
       </View>
-    </SafeAreaView>
+
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApply={() => {}}
+        selectedCountry={selectedCountry}
+        selectedIndustry={selectedIndustry}
+        onSelectCountry={onSelectCountry}
+        onSelectIndustry={onSelectIndustry}
+        type={type}
+        showIndustry={type === 'hashtags'}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
@@ -162,10 +184,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   filterContainer: {
-    padding: 8,
-    paddingBottom: 4,
-    zIndex: 2,
-    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   filtersRow: {
     marginHorizontal: 4,
@@ -185,7 +208,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: 20,
   },
   dropdown: {
     width: '100%',
@@ -221,5 +243,17 @@ const styles = StyleSheet.create({
   },
   infoButton: {
     padding: 4,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 }); 

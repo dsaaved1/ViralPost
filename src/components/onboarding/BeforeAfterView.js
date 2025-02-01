@@ -5,11 +5,13 @@ import {
   Image,
   StyleSheet,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 
 export const BeforeAfterView = ({ showAfterImage }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (showAfterImage) {
@@ -41,6 +43,13 @@ export const BeforeAfterView = ({ showAfterImage }) => {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
+        {isLoading && !showAfterImage && (
+          <ActivityIndicator 
+            size="large" 
+            color="#666"
+            style={styles.loadingIndicator}
+          />
+        )}
         <Animated.View
           style={[
             styles.imageWrapper,
@@ -54,13 +63,13 @@ export const BeforeAfterView = ({ showAfterImage }) => {
             <Image
               source={require('../../assets/images/before-viral.png')}
               style={styles.image}
-              //resizeMode="contain"
+              onLoadStart={() => setIsLoading(true)}
+              onLoadEnd={() => setIsLoading(false)}
             />
           ) : (
             <Image
               source={require('../../assets/images/after-viral.png')}
               style={styles.image}
-              //resizeMode="contain"
             />
           )}
         </Animated.View>
@@ -69,7 +78,7 @@ export const BeforeAfterView = ({ showAfterImage }) => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>Did You Know?</Text>
         <Text style={styles.subtitle}>
-          Using the right trending hashtag, song, or video idea could be the missing key to making your content go viral.
+          Using the right trending hashtag, song, or video idea could be the key to making your content go viral.
         </Text>
       </View>
     </View>
@@ -114,5 +123,9 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    zIndex: 1,
   },
 }); 

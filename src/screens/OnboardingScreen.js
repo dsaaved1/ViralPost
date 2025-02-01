@@ -12,6 +12,8 @@ import { BeforeAfterView } from '../components/onboarding/BeforeAfterView';
 import { StatsView } from '../components/onboarding/StatsView';
 import { TrendingsDemoView } from '../components/onboarding/TrendingsDemoView';
 import { SchedulingDemoView } from '../components/onboarding/SchedulingDemoView';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { notificationService } from '../services/NotificationService';
 
 export const OnboardingScreen = ({ navigation }) => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -21,6 +23,18 @@ export const OnboardingScreen = ({ navigation }) => {
     if (currentPage < totalPages - 1) {
       setCurrentPage(currentPage + 1);
     } else {
+      handleComplete();
+    }
+  };
+
+  const handleComplete = async () => {
+    try {
+      await notificationService.requestPermissions();
+      // Set a flag that onboarding is complete and paywall should be shown
+      await AsyncStorage.setItem('shouldShowPaywall', 'true');
+      navigation.navigate('MainTabs');
+    } catch (error) {
+      console.error('Error in onboarding completion:', error);
       navigation.navigate('MainTabs');
     }
   };

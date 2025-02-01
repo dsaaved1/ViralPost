@@ -12,7 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff",
       "dark": {
-        "image": "./assets/splash-icon.png",
+        "image": "./assets/splash-icon-dark.png",
         "resizeMode": "contain",
         "backgroundColor": "#000000"
       }
@@ -30,6 +30,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "78621e10-3e32-4c90-ae3f-319501ee0bfc"
+      }
     }
   }
 }

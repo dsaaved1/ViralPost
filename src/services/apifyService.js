@@ -1,35 +1,38 @@
 import axios from 'axios';
 
+// Add imports for default images
+const DEFAULT_VIDEO_COVER = require('../assets/images/cover-video.png');
+const DEFAULT_SONG_COVER = require('../assets/images/cover-song.jpeg');
+
 const API_ENDPOINTS = {
   hashtags: {
-    AU: 'https://api.apify.com/v2/datasets/8IDS8oBiZHXN0yAe7/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    BR: 'https://api.apify.com/v2/datasets/qcHVPBhtQd9Qf4nY7/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    CA: 'https://api.apify.com/v2/datasets/2QkDWW3XIv0c3pXoF/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    DE: 'https://api.apify.com/v2/datasets/W82EiGKEQlNmfgGop/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    ES: 'https://api.apify.com/v2/datasets/1kd9PNkafy7qbgTJe/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    FR: 'https://api.apify.com/v2/datasets/QOKJGsA6HsvhS2cf5/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    GB: 'https://api.apify.com/v2/datasets/fgnRUST8BJX1i9oxV/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    ID: 'https://api.apify.com/v2/datasets/VCzrHsb5gVzeoSkYN/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    JP: 'https://api.apify.com/v2/datasets/QFoGlMR3P19N2SP6F/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    KR: 'https://api.apify.com/v2/datasets/seSPbaxvQTSuil6aV/items?token=apify_api_xs3j4k85bc6yWYDl6B418unoQcR6HI0erJsg',
-    MX: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-hashtags-trends-mx/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1',
-    MY: '',
-    PH: '',
+    AU: 'https://api.apify.com/v2/actor-tasks/diegoas2~au-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    BR: 'https://api.apify.com/v2/actor-tasks/diegoas2~br-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    CA: 'https://api.apify.com/v2/actor-tasks/diegoas2~ca-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    DE: 'https://api.apify.com/v2/actor-tasks/diegoas2~de-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    ES: 'https://api.apify.com/v2/actor-tasks/diegoas2~es-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    FR: 'https://api.apify.com/v2/actor-tasks/diegoas2~fr-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    GB: 'https://api.apify.com/v2/actor-tasks/diegoas2~gb-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    ID: 'https://api.apify.com/v2/actor-tasks/diegoas2~id-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    JP: 'https://api.apify.com/v2/actor-tasks/diegoas2~jp-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    MX: 'https://api.apify.com/v2/actor-tasks/diegoas2~mx-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    MY: 'https://api.apify.com/v2/actor-tasks/diegoas2~my-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    PH: 'https://api.apify.com/v2/actor-tasks/diegoas2~ph-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
     US: 'https://api.apify.com/v2/actor-tasks/diegoas2~us-hashtags/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ'
   },
   songs: {
-    AU: '',
-    BR: 'https://api.apify.com/v2/actor-tasks/diego.saavedra~daily-tiktok-song-trends-brazil/runs/last/dataset/items?token=apify_api_8zOwJVitoZkpWAgPVREiY4hz8P1kFr3SEIr1',
-    CA: '',
-    DE: '',
-    ES: '',
-    FR: '',
-    GB: '',
-    ID: '',
-    JP: '',
-    MX: '',
-    MY: '',
-    PH: '',
+    AU: 'https://api.apify.com/v2/actor-tasks/diegoas2~au-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    BR: 'https://api.apify.com/v2/actor-tasks/diegoas2~br-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    CA: 'https://api.apify.com/v2/actor-tasks/diegoas2~ca-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    DE: 'https://api.apify.com/v2/actor-tasks/diegoas2~de-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    ES: 'https://api.apify.com/v2/actor-tasks/diegoas2~es-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    FR: 'https://api.apify.com/v2/actor-tasks/diegoas2~fr-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    GB: 'https://api.apify.com/v2/actor-tasks/diegoas2~gb-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    ID: 'https://api.apify.com/v2/actor-tasks/diegoas2~id-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    JP: 'https://api.apify.com/v2/actor-tasks/diegoas2~jp-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    MX: 'https://api.apify.com/v2/actor-tasks/diegoas2~mx-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    MY: 'https://api.apify.com/v2/actor-tasks/diegoas2~my-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+    PH: 'https://api.apify.com/v2/actor-tasks/diegoas2~ph-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
     US: 'https://api.apify.com/v2/actor-tasks/diegoas2~us-songs/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ'
   },
   videos: {
@@ -48,7 +51,7 @@ const API_ENDPOINTS = {
   },
   videoSorts: {
     US: {
-      // hot: 'https://api.apify.com/v2/actor-tasks/diegoas2~us-videos-hot/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
+      hot: 'https://api.apify.com/v2/actor-tasks/diegoas2~us-videos-hot/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
       likes: 'https://api.apify.com/v2/actor-tasks/diegoas2~us-videos-likes/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
       comments: 'https://api.apify.com/v2/actor-tasks/diegoas2~us-videos-comments/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ',
       shares: 'https://api.apify.com/v2/actor-tasks/diegoas2~us-videos-shares/runs/last/dataset/items?token=apify_api_EeGgw6QrQRof8NqwjpSJqJPZ4hDSl41P0axQ'
@@ -57,18 +60,31 @@ const API_ENDPOINTS = {
 };
 
 const INDUSTRY_ENDPOINTS = {
-  apparel: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/apparel.json',
-  beauty :'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/beauty.json',
-  education: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/education.json',
-  entertainment: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/entertainment.json',
-  financial: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/financial.json',
-  food: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/food.json',
-  games: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/games.json',
-  sports: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/sports.json',
-  tech: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/tech.json',
-  travel: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/travel.json',
-  vehicle: 'https://raw.githubusercontent.com/diegoas2/tiktok-trends-data/refs/heads/main/vehicle.json'
+  allCategories: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/all-categories',
+  apparel: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/apparel.json',
+  beauty :'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/beauty.json',
+  education: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/education.json',
+  entertainment: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/entertainment',
+  financial: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/financial.json',
+  food: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/food.json',
+  games: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/games.json',
+  sports: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/sports.json',
+  tech: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/tech.json',
+  travel: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/travel.json',
+  vehicle: 'https://raw.githubusercontent.com/dsaaved1/tiktok-trends-data/refs/heads/main/vehicle.json'
 };
+
+const mapVideoData = (item) => ({
+  id: item.video_id,
+  cover: item.thumbnail || DEFAULT_VIDEO_COVER,
+  duration: item.duration_in_sec,
+  title: item.title,
+  url: item.url,
+  region: item.region,
+  countryCode: item.country_code,
+  author: item.author,
+  stats: item.stats
+});
 
 export const api = {
   async getTopHashtags(country = 'US', isIndustryMode = false, industry = 'entertainment') {
@@ -125,15 +141,35 @@ export const api = {
         return [];
       }
 
-      return response.data.map(item => ({
-        id: item.song_id || item.id || String(Math.random()),
-        title: item.title || '',
-        author: item.author || '',
-        cover: item.cover || '',
-        rank: item.rank || 0,
-        link: item.link || '',
-        duration: item.duration || ''
-      }));
+      return response.data.map(item => {
+        // Calculate rankDiffType based on rank_progress
+        let rankDiff = 0;
+        let rankDiffType = 4; // Default to "New"
+
+        if (item.rank_progress > 0) {
+          rankDiff = item.rank_progress;
+          rankDiffType = 1; // Up
+        } else if (item.rank_progress < 0) {
+          rankDiff = Math.abs(item.rank_progress);
+          rankDiffType = 3; // Down
+        } else if (item.rank_progress === 0) {
+          rankDiffType = 4; // New
+        }
+
+        return {
+          id: item.song_id || item.clip_id || String(Math.random()),
+          title: item.title || '',
+          author: item.author || '',
+          cover: item.cover_url || DEFAULT_SONG_COVER,
+          rank: item.rank || 0,
+          link: item.link || '',
+          duration: item.duration || '',
+          rankDiff,
+          rankDiffType,
+          trends: item.trends || [],
+          relatedItems: item.related_items || []
+        };
+      });
     } catch (error) {
       console.error('Error fetching songs:', error);
       return [];
@@ -142,24 +178,18 @@ export const api = {
 
   async getTopVideos(country, sort = 'hot') {
     try {
-      const endpoint = API_ENDPOINTS.videoSorts[country]?.[sort] || API_ENDPOINTS.videos[country];
-      if (!endpoint) {
-        return [];
-      }
-      const response = await axios.get(endpoint);
-      
-      if (!Array.isArray(response.data) || response.data.length === 0) {
-        return [];
+      const url = sort === 'hot' ? 
+        API_ENDPOINTS.videos[country] : 
+        API_ENDPOINTS.videoSorts[country]?.[sort];
+
+      if (!url) {
+        throw new Error('Invalid country or sort option');
       }
 
-      return response.data.map(item => ({
-        id: item.id,
-        cover: item.cover,
-        duration: item.duration,
-        url: item.item_url,
-        title: item.title,
-        country_code: item.country_code
-      }));
+      const response = await axios.get(url);
+      const data = await response.data;
+      
+      return data.map(mapVideoData);
     } catch (error) {
       console.error('Error fetching videos:', error);
       return [];

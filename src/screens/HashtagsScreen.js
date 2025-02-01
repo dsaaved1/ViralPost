@@ -8,6 +8,7 @@ import {
   Linking,
   Modal,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import { AppLayout } from '../components/shared/AppLayout';
 import { PremiumBanner } from '../components/shared/PremiumBanner';
@@ -22,16 +23,18 @@ import { storageService } from '../services/storageService';
 
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import Purchases from 'react-native-purchases';
+import { CustomHeader } from '../components/shared/CustomHeader';
+import { FilterModal } from '../components/shared/FilterModal';
 
 const formatNumber = (num) => {
-  if (num === undefined || num === null) {
-    return '0';
+  if (num === undefined || num === null || num === 0) {
+    return 'N/A';
   }
 
   const number = Number(num);
 
   if (isNaN(number)) {
-    return '0';
+    return 'N/A';
   }
 
   if (number >= 1000000) {
@@ -44,13 +47,13 @@ const formatNumber = (num) => {
   return number.toString();
 };
 
-export const HashtagsScreen = () => {
+export const HashtagsScreen = ({ navigation }) => {
   const { theme } = useTheme();
 
   const [hashtags, setHashtags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState('US');
-  const [selectedIndustry, setSelectedIndustry] = useState('entertainment');
+  const [selectedIndustry, setSelectedIndustry] = useState(null);
 
   const [isGlobalView, setIsGlobalView] = useState(false);
   const [isPro, setIsPro] = useState(false);
@@ -63,6 +66,8 @@ export const HashtagsScreen = () => {
 
   const MAX_INDUSTRY_HASHTAGS = isPro? 100: 15;
   const FREE_INDUSTRY_HASHTAGS = 10;
+
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   useEffect(() => {
     checkSubscriptionStatus();
@@ -88,7 +93,12 @@ export const HashtagsScreen = () => {
   const fetchHashtags = async () => {
     setLoading(true);
     try {
-      const data = await api.getTopHashtags(selectedCountry, isGlobalView, selectedIndustry);
+      // If industry is selected, use that for filtering, otherwise use country
+      const data = await api.getTopHashtags(
+        selectedIndustry ? null : selectedCountry,
+        selectedIndustry ? true : false,
+        selectedIndustry
+      );
       setHashtags(data);
     } catch (error) {
       console.error('Error fetching hashtags:', error);
@@ -240,7 +250,10 @@ export const HashtagsScreen = () => {
         </View>
         {!isGlobalView && (
           <View style={styles.statsValue}>
-            <Text style={[styles.statsText, { color: theme.textSecondary }]}>
+            <Text style={[styles.statsText, { 
+              color: theme.textSecondary,
+              fontStyle: 'normal'
+            }]}>
               {formatNumber(item?.views)}
             </Text>
           </View>
@@ -324,9 +337,11 @@ export const HashtagsScreen = () => {
     }
 
     const maxItems = isGlobalView ? MAX_INDUSTRY_HASHTAGS : MAX_HASHTAGS;
-    const freeItems = isGlobalView ? FREE_INDUSTRY_HASHTAGS : FREE_HASHTAGS;
-
-    if (index < freeItems) {
+    
+    // Lock only first 3 entries for non-pro users
+    const isLocked = index < 3;
+    
+    if (!isLocked) {
       return <HashtagItem item={item} />;
     }
     
@@ -340,77 +355,76 @@ export const HashtagsScreen = () => {
 
   if (loading) {
     return (
-      <AppLayout 
-        selectedCountry={selectedCountry} 
+      <View style={{ flex: 1, backgroundColor: theme.background }}>
+        <SafeAreaView style={{ backgroundColor: theme.background }}>
+          <CustomHeader 
+            title="Hashtags"
+            onBack={() => navigation.goBack()}
+            onFilter={() => setShowFilterModal(true)}
+          />
+        </SafeAreaView>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#666" />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <SafeAreaView style={{ backgroundColor: theme.background }}>
+        <CustomHeader 
+          title="Hashtags"
+          onBack={() => navigation.goBack()}
+          onFilter={() => setShowFilterModal(true)}
+        />
+      </SafeAreaView>
+      
+      <AppLayout
+        selectedCountry={selectedCountry}
         onSelectCountry={setSelectedCountry}
         selectedIndustry={selectedIndustry}
         onSelectIndustry={setSelectedIndustry}
         onPremiumPress={proAction}
         type="hashtags"
-        isIndustryMode={isGlobalView}
-        rightControl={
-          <TouchableOpacity 
-            style={styles.viewToggle}
-            onPress={handleModeSwitch}
-          >
-            <Ionicons 
-              name={isGlobalView ? "earth" : "location-outline"}
-              size={20} 
-              color={theme.accent}
-            />
-          </TouchableOpacity>
-        }
+        showFilters={false}
       >
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#666" />
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          <FlatList
+            data={hashtags.slice(0, isGlobalView ? MAX_INDUSTRY_HASHTAGS : MAX_HASHTAGS)}
+            renderItem={renderHashtag}
+            keyExtractor={(item) => item.id}
+            refreshing={loading}
+            onRefresh={fetchHashtags}
+            ListHeaderComponent={<TableHeader />}
+            ListEmptyComponent={
+              <View style={styles.centered}>
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                  No hashtags found
+                </Text>
+              </View>
+            }
+            ListFooterComponent={hashtags.length > 0  ? <FooterMessage isPro={isPro}  type="hashtags" /> : null}
+            contentContainerStyle={styles.listContainer}
+          />
         </View>
       </AppLayout>
-    );
-  }
 
-  return (
-    <AppLayout 
-      selectedCountry={selectedCountry} 
-      onSelectCountry={setSelectedCountry}
-      selectedIndustry={selectedIndustry}
-      onSelectIndustry={setSelectedIndustry}
-      onPremiumPress={proAction}
-      type="hashtags"
-      isIndustryMode={isGlobalView}
-      rightControl={
-        <TouchableOpacity 
-          style={styles.viewToggle}
-          onPress={handleModeSwitch}
-        >
-          <Ionicons 
-            name={isGlobalView ? "earth" : "location-outline"}
-            size={20} 
-            color={theme.accent}
-          />
-        </TouchableOpacity>
-      }
-    >
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <FlatList
-          data={hashtags.slice(0, isGlobalView ? MAX_INDUSTRY_HASHTAGS : MAX_HASHTAGS)}
-          renderItem={renderHashtag}
-          keyExtractor={(item) => item.id}
-          refreshing={loading}
-          onRefresh={fetchHashtags}
-          ListHeaderComponent={<TableHeader />}
-          ListEmptyComponent={
-            <View style={styles.centered}>
-              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                No hashtags found
-              </Text>
-            </View>
-          }
-          ListFooterComponent={hashtags.length > 0 && !isPro ? <FooterMessage isIndustryView={isGlobalView} type="hashtags" /> : null}
-          style={{ backgroundColor: theme.background }}
-          contentContainerStyle={styles.listContentContainer}
-        />
-      </View>
-    </AppLayout>
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApply={() => fetchHashtags()}
+        selectedCountry={selectedCountry}
+        selectedIndustry={selectedIndustry}
+        onSelectCountry={setSelectedCountry}
+        onSelectIndustry={setSelectedIndustry}
+        type="hashtags"
+        showIndustry={true}
+        showCountry={true}
+        onPremiumPress={proAction}
+        isPro={isPro}
+      />
+    </View>
   );
 };
 
@@ -587,7 +601,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   listContainer: {
-    paddingBottom: 20,
+    flexGrow: 1,
   },
   filterContainer: {
     paddingHorizontal: 16,
@@ -636,5 +650,8 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     padding: 4,
+  },
+  container: {
+    flex: 1,
   },
 }); 

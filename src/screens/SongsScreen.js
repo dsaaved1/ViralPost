@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Modal,
   LinearGradient,
+  SafeAreaView,
 } from 'react-native';
 import { api } from '../services/apifyService';
 import { AppLayout } from '../components/shared/AppLayout';
@@ -20,19 +21,22 @@ import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { FooterMessage } from '../components/shared/FooterMessage';
 import { storageService } from '../services/storageService';
+import { CustomHeader } from '../components/shared/CustomHeader';
+import { FilterModal } from '../components/shared/FilterModal';
 
 import Purchases from 'react-native-purchases';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 
-export const SongsScreen = () => {
+export const SongsScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState('US');
-  const [isListView, setIsListView] = useState(true);
+  const [isListView] = useState(true);
   const [savedSongs, setSavedSongs] = useState(new Set());
   const [isPro, setIsPro] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   useEffect(() => {
     loadSongs();
@@ -107,8 +111,6 @@ export const SongsScreen = () => {
       console.error("Error in proAction:", error);
     }
   };
-
-
 
   const openSongLink = (link) => {
     Linking.openURL(link);
@@ -206,16 +208,19 @@ export const SongsScreen = () => {
   );
 
   const SongListItem = ({ item, onPress }) => {
+    const { theme } = useTheme();
     const isSaved = savedSongs.has(item.id);
     
     return (
       <TouchableOpacity 
-        style={[styles.songListItem, { backgroundColor: theme.cardBackground }]}
+        style={[styles.songListItem, { backgroundColor: theme.surface }]}
         onPress={onPress}
       >
         <View style={styles.rankColumn}>
           <RankDisplay 
             rank={item.rank}
+            rankDiff={item.rankDiff}
+            rankDiffType={item.rankDiffType}
             theme={theme}
           />
         </View>
@@ -252,6 +257,7 @@ export const SongsScreen = () => {
   };
 
   const LockedSongListItem = ({ item, onPress }) => {
+    const { theme } = useTheme();
     const truncateText = (text, length) => {
       if (text.length <= length) return text;
       return `${text.slice(0, length)}...`;
@@ -265,8 +271,10 @@ export const SongsScreen = () => {
         <View style={styles.rankColumn}>
           <RankDisplay 
             rank={item.rank}
-            isBlurred={true}
+            rankDiff={item.rankDiff}
+            rankDiffType={item.rankDiffType}
             theme={theme}
+            isBlurred={true}
           />
         </View>
         <View style={styles.songColumn}>
@@ -276,16 +284,16 @@ export const SongsScreen = () => {
               style={[styles.listCoverImage, { opacity: 0.5 }]}
               resizeMode="cover"
             />
-            <View style={[styles.listLockOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
+            <View style={[styles.listLockOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
               <Ionicons name="lock-closed" size={20} color="#fff" />
             </View>
           </View>
           <View style={styles.songDetails}>
             <Text style={[styles.listSongTitle, styles.blurredText, { color: theme.text }]} numberOfLines={1}>
-              {truncateText(item.title, 6)}
+            {truncateText(item.title, 6)}
             </Text>
             <Text style={[styles.listSongAuthor, styles.blurredText, { color: theme.textSecondary }]} numberOfLines={1}>
-              {truncateText(item.author, 4)}
+            {truncateText(item.author, 6)}
             </Text>
           </View>
         </View>
@@ -294,9 +302,8 @@ export const SongsScreen = () => {
   };
 
   const renderSong = ({ item, index }) => {
-
-
-    if (isPro || index < FREE_SONGS) {
+    // If the user is Pro, show all songs unlocked
+    if (isPro) {
       return isListView ? (
         <SongListItem 
           item={item} 
@@ -310,8 +317,21 @@ export const SongsScreen = () => {
       );
     }
 
-    if (index >= MAX_SONGS) {
-      return null;
+    // Lock only first 3 entries for non-pro users
+    const isLocked = index < 3;
+    
+    if (!isLocked) {
+      return isListView ? (
+        <SongListItem 
+          item={item} 
+          onPress={() => openSongLink(item.link)}
+        />
+      ) : (
+        <SongCard 
+          item={item} 
+          onPress={() => openSongLink(item.link)}
+        />
+      );
     }
     
     return isListView ? (
@@ -337,82 +357,86 @@ export const SongsScreen = () => {
 
   if (loading) {
     return (
-      <AppLayout 
-        selectedCountry={selectedCountry} 
-        onSelectCountry={setSelectedCountry}
-        type="songs"
-        scrollableFilters={true}
-      >
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+        <CustomHeader 
+          title="Songs"
+          onBack={() => navigation.goBack()}
+          onFilter={() => setShowFilterModal(true)}
+        />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color="#666" />
         </View>
-      </AppLayout>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <AppLayout 
-        selectedCountry={selectedCountry} 
-        onSelectCountry={setSelectedCountry}
-        type="songs"
-        scrollableFilters={true}
-      >
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+        <CustomHeader 
+          title="Songs"
+          onBack={() => navigation.goBack()}
+          onFilter={() => setShowFilterModal(true)}
+        />
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadSongs}>
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </AppLayout>
+      </SafeAreaView>
     );
   }
 
   return (
-    <AppLayout 
-      selectedCountry={selectedCountry} 
-      onSelectCountry={setSelectedCountry}
-      type="songs"
-      extraFilters={null}
-      rightControl={
-        <TouchableOpacity 
-          style={styles.viewToggle}
-          onPress={() => setIsListView(!isListView)}
-        >
-          <Ionicons 
-            name={isListView ? "grid-outline" : "list-outline"} 
-            size={20} 
-            color={theme.accent}
-          />
-        </TouchableOpacity>
-      }
-    >
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <FlatList
-          data={songs.slice(0, MAX_SONGS)}
-          renderItem={renderSong}
-          keyExtractor={(item) => item.id}
-          numColumns={isListView ? 1 : 2}
-          key={isListView ? 'list' : 'grid'}
-          columnWrapperStyle={!isListView && styles.songRow}
-          contentContainerStyle={[
-            isListView ? styles.listContainer : styles.gridContainer,
-            { paddingBottom: 20 }
-          ]}
-          ListHeaderComponent={isListView ? <TableHeader /> : null}
-          refreshing={loading}
-          onRefresh={loadSongs}
-          ListEmptyComponent={
-            <View style={styles.centered}>
-              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                No songs found
-              </Text>
-            </View>
-          }
-          ListFooterComponent={songs.length > 0 && !isPro ? <FooterMessage type="songs" /> : null}
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <SafeAreaView style={{ backgroundColor: theme.background }}>
+        <CustomHeader 
+          title="Songs"
+          onBack={() => navigation.goBack()}
+          onFilter={() => setShowFilterModal(true)}
         />
-      </View>
-    </AppLayout>
+      </SafeAreaView>
+      
+      <AppLayout
+        selectedCountry={selectedCountry}
+        onSelectCountry={setSelectedCountry}
+        onPremiumPress={proAction}
+        type="songs"
+        showFilters={false}
+      >
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          <FlatList
+            data={songs.slice(0, MAX_SONGS)}
+            renderItem={renderSong}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            ListHeaderComponent={<TableHeader />}
+            refreshing={loading}
+            onRefresh={loadSongs}
+            ListEmptyComponent={
+              <View style={styles.centered}>
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                  No songs found
+                </Text>
+              </View>
+            }
+            ListFooterComponent={songs.length > 0 ? <FooterMessage isPro={isPro} type="songs" /> : null}
+          />
+        </View>
+      </AppLayout>
+
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApply={() => loadSongs()}
+        selectedCountry={selectedCountry}
+        onSelectCountry={setSelectedCountry}
+        type="songs"
+        showIndustry={false}
+        showCountry={true}
+      />
+    </View>
   );
 };
 
@@ -637,7 +661,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 0,
-    paddingBottom: 20,
   },
   headerRow: {
     flexDirection: 'row',
@@ -703,5 +726,25 @@ const styles = StyleSheet.create({
   songCardContent: {
     padding: 16,
     paddingHorizontal: 20,
+  },
+  errorText: {
+    color: '#FF4B4B',
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  retryButton: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  emptyText: {
+    color: '#8E8E93',
+    fontSize: 16,
   },
 }); 

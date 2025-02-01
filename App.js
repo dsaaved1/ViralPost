@@ -53,9 +53,11 @@ const TabNavigator = () => {
         },
         headerStyle: {
           backgroundColor: theme.background,
-          borderBottomColor: theme.border,
-          borderBottomWidth: 1,
+          shadowColor: 'transparent',
+          elevation: 0,
+          borderBottomWidth: 0,
         },
+        headerBackTitleVisible: false,
         headerTintColor: theme.text,
         headerTitleStyle: {
           color: theme.text,
@@ -160,15 +162,7 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: {
-            backgroundColor: theme.background,
-            borderBottomColor: theme.border,
-            borderBottomWidth: 1,
-          },
-          headerTintColor: theme.text,
-          headerTitleStyle: {
-            color: theme.text,
-          },
+          headerShown: false,
           gestureEnabled: false,
           swipeEnabled: false,
         }}
@@ -181,33 +175,58 @@ const AppNavigator = () => {
         <Stack.Screen 
           name="MainTabs" 
           component={TabNavigator}
-          options={{ headerShown: false }}
+          options={{ 
+            headerShown: false,
+            title: '',
+          }}
         />
         <Stack.Screen 
           name="Hashtags" 
           component={HashtagsScreen}
-          options={{
-            title: 'Hashtags',
-            headerRight: renderInfoButton
-          }}
+          options={({ navigation }) => ({
+            headerLeft: () => (
+              <TouchableOpacity 
+                onPress={() => navigation.goBack()}
+                style={{ marginLeft: 16 }}
+              >
+                <Ionicons name="chevron-back" size={24} color={theme.text} />
+              </TouchableOpacity>
+            ),
+            headerTitle: 'Hashtags',
+            headerRight: renderInfoButton,
+          })}
         />
         <Stack.Screen 
           name="Songs" 
           component={SongsScreen}
-          options={{ 
+          options={({ navigation }) => ({
+            headerLeft: () => (
+              <TouchableOpacity 
+                onPress={() => navigation.goBack()}
+                style={{ marginLeft: 16 }}
+              >
+                <Ionicons name="chevron-back" size={24} color={theme.text} />
+              </TouchableOpacity>
+            ),
             headerTitle: 'Songs',
-            headerBackTitle: 'Back',
-            headerRight: renderInfoButton
-          }}
+            headerRight: renderInfoButton,
+          })}
         />
         <Stack.Screen 
           name="Videos" 
           component={VideosScreen}
-          options={{ 
+          options={({ navigation }) => ({
+            headerLeft: () => (
+              <TouchableOpacity 
+                onPress={() => navigation.goBack()}
+                style={{ marginLeft: 16 }}
+              >
+                <Ionicons name="chevron-back" size={24} color={theme.text} />
+              </TouchableOpacity>
+            ),
             headerTitle: 'Videos',
-            headerBackTitle: 'Back',
-            headerRight: renderInfoButton
-          }}
+            headerRight: renderInfoButton,
+          })}
         />
         <Stack.Screen 
           name="Onboarding" 

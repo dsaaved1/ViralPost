@@ -24,7 +24,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { AddSavedItemModal } from '../components/saved/AddSavedItemModal';
 import { storageService } from '../services/storageService';
 import { useFocusEffect } from '@react-navigation/native';
-import { notificationService } from '../services/notificationService';
+import notificationService from '../services/notificationService';
 
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import Purchases from 'react-native-purchases';
@@ -318,7 +318,7 @@ const EditModal = ({ visible, onClose, onSave, item, isNew = false }) => {
     <Modal
       visible={visible}
       transparent={true}
-      animationType="fade"
+      animationType="slide"
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView 

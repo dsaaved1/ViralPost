@@ -18,7 +18,7 @@ export const TrendingsDemoView = () => {
       </View>
       
       <View style={styles.textContainer}>
-        <Text style={styles.title}>Trusted Trends Rankings</Text>
+        <Text style={styles.title}>Daily Trending{'\n'}Charts</Text>
         <Text style={styles.subtitle}>
           Find trending hashtags, songs, and viral videos. Tap to view them on TikTok and stay ahead of trends.
         </Text>

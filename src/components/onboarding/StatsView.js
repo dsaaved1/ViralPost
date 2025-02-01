@@ -23,7 +23,7 @@ export const StatsView = () => {
          Stats That Matter, Elevate Your Reach  Upload your videos with the latest trends and take your content creation to the next level.  We're here to help you! 
         </Text> */}
         <Text style={styles.subtitle}>
-          Uploading your videos with the latest trends can significantly increase you chances to go viral according to studies.
+        Studies show that incorporating trending content can significantly boost your chances of going viral.
         </Text>
       </View>
     </View>
